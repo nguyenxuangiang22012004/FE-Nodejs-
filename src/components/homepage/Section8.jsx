@@ -1,6 +1,4 @@
-import React from 'react';
-
-const ColumnProducts = () => {
+const Section8 = () => {
   const products = {
     special: [
       { id: 1, img: 'product23.jpg', name: 'Razor Gear 15 Ram 16GB', price: '$125.00' },
@@ -135,4 +133,4 @@ const ColumnProducts = () => {
   );
 };
 
-export default ColumnProducts;
+export default Section8;

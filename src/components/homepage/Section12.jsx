@@ -1,6 +1,4 @@
-import React from 'react';
-
-const Brands = () => {
+const Section12 = () => {
   const brands = ['b1.png', 'b2.png', 'b3.png', 'b4.png', 'b5.png', 'b6.png'];
 
   return (
@@ -24,4 +22,4 @@ const Brands = () => {
   );
 };
 
-export default Brands;
+export default Section12;

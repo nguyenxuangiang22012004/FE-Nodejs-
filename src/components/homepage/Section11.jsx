@@ -1,6 +1,4 @@
-import React from 'react';
-
-const Testimonials = () => {
+const Section11 = () => {
   const testimonials = [
     {
       id: 1,
@@ -69,4 +67,4 @@ const Testimonials = () => {
   );
 };
 
-export default Testimonials;
+export default Section11;

@@ -1,11 +1,9 @@
-import React from 'react';
-
-const FeaturedProducts = () => {
+const Section6 = () => {
   const featuredProducts = [
-    { id: 1, img: 'product19.jpg', name: 'Tablet 14inch Screen', price: '$125.00', discount: '$160.00', rating: 4.5, reviews: 23 },
-    { id: 2, img: 'product20.jpg', name: 'Tablet 18inch Screen', price: '$125.00', discount: '$160.00', rating: 4.5, reviews: 23 },
-    { id: 3, img: 'product21.jpg', name: 'Tablet 13inch Screen Ram 16GB', price: '$125.00', discount: '$160.00', rating: 4.5, reviews: 23 },
-    { id: 4, img: 'product22.jpg', name: 'Tablet 12inch Screen Ram 16GB', price: '$125.00', discount: '$160.00', rating: 4.5, reviews: 23 }
+    { id: 1, img: 'product19.jpg', name: 'Tablet 14inch Screen', rating: 4.5, reviews: 23 },
+    { id: 2, img: 'product20.jpg', name: 'Tablet 18inch Screen', rating: 4.5, reviews: 23 },
+    { id: 3, img: 'product21.jpg', name: 'Tablet 13inch Screen Ram 16GB', rating: 4.5, reviews: 23 },
+    { id: 4, img: 'product22.jpg', name: 'Tablet 12inch Screen Ram 16GB', rating: 4.5, reviews: 23 }
   ];
 
   const renderStars = (rating) => {
@@ -79,23 +77,18 @@ const FeaturedProducts = () => {
                       </ul>
                     </div>
                   </div>
-
                   <span className="product-o__category">
                     <a href="shop-side-version-2.html">Electronics</a>
                   </span>
-
                   <span className="product-o__name">
                     <a href="product-detail.html">{product.name}</a>
                   </span>
-                  
                   <div className="product-o__rating gl-rating-style">
                     {renderStars(product.rating)}
                     <span className="product-o__review">({product.reviews})</span>
                   </div>
-
-                  <span className="product-o__price">
-                    {product.price}
-                    <span className="product-o__discount">{product.discount}</span>
+                  <span className="product-o__price">$125.00
+                    <span className="product-o__discount">$160.00</span>
                   </span>
                 </div>
               </div>
@@ -107,4 +100,4 @@ const FeaturedProducts = () => {
   );
 };
 
-export default FeaturedProducts;
+export default Section6;

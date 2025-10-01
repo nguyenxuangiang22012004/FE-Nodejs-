@@ -24,29 +24,19 @@ const Footer = () => {
                 <div className="outer-footer__social">
                   <ul>
                     <li>
-                      <a className="s-fb--color-hover" href="#">
-                        <i className="fab fa-facebook-f"></i>
-                      </a>
+                      <a className="s-fb--color-hover" href="#"><i className="fab fa-facebook-f"></i></a>
                     </li>
                     <li>
-                      <a className="s-tw--color-hover" href="#">
-                        <i className="fab fa-twitter"></i>
-                      </a>
+                      <a className="s-tw--color-hover" href="#"><i className="fab fa-twitter"></i></a>
                     </li>
                     <li>
-                      <a className="s-youtube--color-hover" href="#">
-                        <i className="fab fa-youtube"></i>
-                      </a>
+                      <a className="s-youtube--color-hover" href="#"><i className="fab fa-youtube"></i></a>
                     </li>
                     <li>
-                      <a className="s-insta--color-hover" href="#">
-                        <i className="fab fa-instagram"></i>
-                      </a>
+                      <a className="s-insta--color-hover" href="#"><i className="fab fa-instagram"></i></a>
                     </li>
                     <li>
-                      <a className="s-gplus--color-hover" href="#">
-                        <i className="fab fa-google-plus-g"></i>
-                      </a>
+                      <a className="s-gplus--color-hover" href="#"><i className="fab fa-google-plus-g"></i></a>
                     </li>
                   </ul>
                 </div>
@@ -104,17 +94,10 @@ const Footer = () => {
                   </div>
                   <div className="newsletter__group">
                     <label htmlFor="newsletter"></label>
-                    <input 
-                      className="input-text input-text--only-white" 
-                      type="text" 
-                      id="newsletter" 
-                      placeholder="Enter your Email" 
-                    />
+                    <input className="input-text input-text--only-white" type="text" id="newsletter" placeholder="Enter your Email" />
                     <button className="btn btn--e-brand newsletter__btn" type="submit">SUBSCRIBE</button>
                   </div>
-                  <span className="newsletter__text">
-                    Subscribe to the mailing list to receive updates on promotions, new arrivals, discount and coupons.
-                  </span>
+                  <span className="newsletter__text">Subscribe to the mailing list to receive updates on promotions, new arrivals, discount and coupons.</span>
                 </form>
               </div>
             </div>

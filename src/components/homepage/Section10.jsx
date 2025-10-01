@@ -1,6 +1,4 @@
-import React from 'react';
-
-const BlogSection = () => {
+const Section10 = () => {
   const blogPosts = [
     {
       id: 1,
@@ -110,4 +108,4 @@ const BlogSection = () => {
   );
 };
 
-export default BlogSection;
+export default Section10;
