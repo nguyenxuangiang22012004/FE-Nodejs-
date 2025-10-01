@@ -1,5 +1,10 @@
 import React from 'react';
-
+import FeaturedProducts from '../components/homepage/FeaturedProducts';
+import Promotions from '../components/homepage/Promotions';
+import ColumnProducts from '../components/homepage/ColumnProducts';
+import BlogSection from '../components/homepage/BlogSection';
+import Testimonials from '../components/homepage/Testimonials';
+import Brands from '../components/homepage/Brands';
 const Homepage = () => {
   return (
     <>
@@ -502,29 +507,13 @@ const Homepage = () => {
       </div>
 
       {/* Section 6 - Featured Products */}
-      <div className="u-s-p-y-60">
-        <div className="section__intro u-s-m-b-46">
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-12">
-                <div className="section__text-wrap">
-                  <h1 className="section__heading u-c-secondary u-s-m-b-12">FEATURED PRODUCTS</h1>
-                  <span className="section__span u-c-silver">FIND NEW FEATURED PRODUCTS</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="section__content">
-          <div className="container">
-            <div className="row">
-              {/* Featured product items would go here - similar structure to trending products */}
-            </div>
-          </div>
-        </div>
-      </div>
+      <FeaturedProducts />
       
+      {/* Section 7 - Promotions */}
+      <Promotions />
+      
+      {/* Section 8 - Column Products */}
+      <ColumnProducts />
 
       {/* Services Section */}
       <div className="u-s-p-b-60">
@@ -562,6 +551,14 @@ const Homepage = () => {
           </div>
         </div>
       </div>
+       {/* Section 10 - Blog Section */}
+      <BlogSection />
+      
+      {/* Section 11 - Testimonials */}
+      <Testimonials />
+      
+      {/* Section 12 - Brands */}
+      <Brands />
     </>
   );
 };
