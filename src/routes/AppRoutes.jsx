@@ -5,6 +5,8 @@ import SignIn from "../pages/SignIn";
 import Signup from "../pages/Signup";
 import LostPassword from "../pages/Lost-password";
 import Wishlist from "../pages/Wishlist";
+import ShopSide from "../pages/Shopside";
+import ProductDetail from "../pages/ProductDetail";
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -14,7 +16,9 @@ function AppRoutes() {
           <Route path="/signin" element={<SignIn />} /> 
           <Route path="/signup" element={<Signup />} /> 
           <Route path="/lostpassword" element={<LostPassword />} /> 
-          <Route path="/wishlist" element={<Wishlist />} /> 
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/shopside" element={<ShopSide />} /> 
+          <Route path="/product-detail/:productId" element={<ProductDetail />} /> 
         </Route>
       </Routes>
     </BrowserRouter>
