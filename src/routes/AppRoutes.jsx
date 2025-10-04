@@ -9,7 +9,15 @@ import ShopSide from "../pages/Shopside";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
-import Dashboard from "../pages/Dashboard";
+import Dashboard from "../pages/dashboard/Dashboard";
+import DashAddressAdd from "../pages/dashboard/DashAddressAdd";
+import DashAddressBook from "../pages/dashboard/DashAddressBook";
+import DashAddressEdit from "../pages/dashboard/DashAddressEdit";
+import DashAddressMakeDefault from "../pages/dashboard/DashAddressMakeDefault";
+import DashCancellation from "../pages/dashboard/DashCancellation";
+import DashEditProfile from "../pages/dashboard/DashEditProfile";
+import DashManageOrder from "../pages/dashboard/DashManageOrder";
+import DashMyOrder from "../pages/dashboard/DashMyOrder";
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -25,6 +33,14 @@ function AppRoutes() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/dash-address-add" element={<DashAddressAdd />} />
+          <Route path="/dashboard/dash-address-book" element={<DashAddressBook />} />
+          <Route path="/dashboard/dash-address-edit" element={<DashAddressEdit />} />
+          <Route path="/dashboard/dash-address-default" element={<DashAddressMakeDefault />} />
+          <Route path="/dashboard/dash-cancellation" element={<DashCancellation />} />
+          <Route path="/dashboard/dash-edit-profile" element={<DashEditProfile />} />
+          <Route path="/dashboard/dash-manage-order" element={<DashManageOrder />} />
+          <Route path="/dashboard/dash-my-order" element={<DashMyOrder />} />
         </Route>
       </Routes>
     </BrowserRouter>
