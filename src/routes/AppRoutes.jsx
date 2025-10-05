@@ -18,6 +18,11 @@ import DashCancellation from "../pages/dashboard/DashCancellation";
 import DashEditProfile from "../pages/dashboard/DashEditProfile";
 import DashManageOrder from "../pages/dashboard/DashManageOrder";
 import DashMyOrder from "../pages/dashboard/DashMyOrder";
+import DashMyProfile from "../pages/dashboard/DashMyProfile";
+import DashPaymentOption from "../pages/dashboard/DashPaymentOption";
+import DashTrackOrder from "../pages/dashboard/DashTrackOrder";
+import EmptyCart from "../pages/EmptyCart";
+import EmptySearch from "../pages/EmptySearch";
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -32,6 +37,8 @@ function AppRoutes() {
           <Route path="/product-detail/:productId" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/empty-cart" element={<EmptyCart />} />
+          <Route path="/empty-search" element={<EmptySearch />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/dash-address-add" element={<DashAddressAdd />} />
           <Route path="/dashboard/dash-address-book" element={<DashAddressBook />} />
@@ -41,6 +48,9 @@ function AppRoutes() {
           <Route path="/dashboard/dash-edit-profile" element={<DashEditProfile />} />
           <Route path="/dashboard/dash-manage-order" element={<DashManageOrder />} />
           <Route path="/dashboard/dash-my-order" element={<DashMyOrder />} />
+          <Route path="/dashboard/dash-my-profile" element={<DashMyProfile />} />
+          <Route path="/dashboard/dash-payment-option" element={<DashPaymentOption />} />
+          <Route path="/dashboard/dash-track-order" element={<DashTrackOrder />} />
         </Route>
       </Routes>
     </BrowserRouter>
