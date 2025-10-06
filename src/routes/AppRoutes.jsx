@@ -23,6 +23,10 @@ import DashPaymentOption from "../pages/dashboard/DashPaymentOption";
 import DashTrackOrder from "../pages/dashboard/DashTrackOrder";
 import EmptyCart from "../pages/EmptyCart";
 import EmptySearch from "../pages/EmptySearch";
+import EmptyWishlist from "../pages/EmptyWishlist";
+import NotFound from "../pages/NotFound";
+import BlogDetail from "../pages/BlogDetail";
+import BlogSidebar from "../pages/BlogSidebar";
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -39,6 +43,10 @@ function AppRoutes() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/empty-cart" element={<EmptyCart />} />
           <Route path="/empty-search" element={<EmptySearch />} />
+          <Route path="/empty-wishlist" element={<EmptyWishlist />} />
+          <Route path="*" element={<NotFound />} />
+          <Route path="/blog-sidebar" element={<BlogDetail />} />
+          <Route path="/blog-detail" element={<BlogSidebar />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/dash-address-add" element={<DashAddressAdd />} />
           <Route path="/dashboard/dash-address-book" element={<DashAddressBook />} />
