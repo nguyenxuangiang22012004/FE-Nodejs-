@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../services/AuthService'; // Import hàm login
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -16,14 +15,25 @@ const SignIn = () => {
     setError('');
 
     try {
-      await login(email, password);
-      // Chuyển hướng về trang chủ với query parameter để kích hoạt reload
-      navigate('/?reload=true');
+      // Giả lập đăng nhập thành công
+      setTimeout(() => {
+        navigate('/?reload=true');
+      }, 1000);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Xử lý đăng nhập bằng Google (chỉ giao diện)
+  const handleGoogleLogin = () => {
+    alert('Tính năng đăng nhập bằng Google sẽ được triển khai sau');
+  };
+
+  // Xử lý đăng nhập bằng Facebook (chỉ giao diện)
+  const handleFacebookLogin = () => {
+    alert('Tính năng đăng nhập bằng Facebook sẽ được triển khai sau');
   };
 
   return (
@@ -92,6 +102,38 @@ const SignIn = () => {
                     )}
 
                     <form className="l-f-o__form" onSubmit={handleLogin}>
+                      {/* Social Login Buttons */}
+                      <div className="gl-s-api">
+                        <div className="u-s-m-b-15">
+                          <button 
+                            className="gl-s-api__btn gl-s-api__btn--fb" 
+                            type="button"
+                            onClick={handleFacebookLogin}
+                          >
+                            <i className="fab fa-facebook-f"></i>
+                            <span>Signin with Facebook</span>
+                          </button>
+                        </div>
+                        <div className="u-s-m-b-15">
+                          <button 
+                            className="gl-s-api__btn gl-s-api__btn--gplus" 
+                            type="button"
+                            onClick={handleGoogleLogin}
+                          >
+                            <i className="fab fa-google"></i>
+                            <span>Signin with Google</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="u-s-m-b-30">
+                        <div className="gl-divider">
+                          <span className="gl-divider__text">OR</span>
+                        </div>
+                      </div>
+
+                      {/* Email and Password Form */}
                       <div className="u-s-m-b-30">
                         <label className="gl-label" htmlFor="login-email">E-MAIL *</label>
                         <input
@@ -137,7 +179,10 @@ const SignIn = () => {
 
                       <div className="u-s-m-b-30">
                         <div className="check-box">
-                          <input type="checkbox" id="remember-me" />
+                          <input 
+                            type="checkbox" 
+                            id="remember-me" 
+                          />
                           <div className="check-box__state check-box__state--primary">
                             <label className="check-box__label" htmlFor="remember-me">
                               Remember Me
@@ -154,6 +199,34 @@ const SignIn = () => {
         </div>
       </div>
       {/*====== End - Section 2 ======*/}
+
+      {/* CSS cho divider */}
+      <style jsx>{`
+        .gl-divider {
+          position: relative;
+          text-align: center;
+          margin: 20px 0;
+        }
+        
+        .gl-divider::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: #e0e0e0;
+        }
+        
+        .gl-divider__text {
+          background: white;
+          padding: 0 15px;
+          color: #666;
+          font-size: 14px;
+          position: relative;
+          z-index: 1;
+        }
+      `}</style>
     </>
   );
 };
