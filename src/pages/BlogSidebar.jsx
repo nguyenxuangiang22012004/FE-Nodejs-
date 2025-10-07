@@ -2,7 +2,7 @@ import React from 'react';
 import BlogPost from '../components/blog/BlogPost';
 import BlogPagination from '../components/blog/BlogPagination';
 
-const BlogSidebarNone = () => {
+const BlogSidebar = () => {
   // Dữ liệu bài viết blog (có thể fetch từ API hoặc state management)
   const blogPosts = [
     {

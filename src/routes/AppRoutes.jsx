@@ -45,8 +45,8 @@ function AppRoutes() {
           <Route path="/empty-search" element={<EmptySearch />} />
           <Route path="/empty-wishlist" element={<EmptyWishlist />} />
           <Route path="*" element={<NotFound />} />
-          <Route path="/blog-sidebar" element={<BlogDetail />} />
-          <Route path="/blog-detail" element={<BlogSidebar />} />
+          <Route path="/blog-sidebar" element={<BlogSidebar />} />
+          <Route path="/blog-detail" element={<BlogDetail />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/dash-address-add" element={<DashAddressAdd />} />
           <Route path="/dashboard/dash-address-book" element={<DashAddressBook />} />

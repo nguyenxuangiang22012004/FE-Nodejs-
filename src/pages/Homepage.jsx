@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Section4 from '../components/homepage/Section4';
 import Section2 from '../components/homepage/Section2';
 import Section5 from '../components/homepage/Section5';
@@ -11,7 +12,20 @@ import Section9 from '../components/homepage/Section9';
 import Section10 from '../components/homepage/Section10';
 import Section11 from '../components/homepage/Section11';
 import Section12 from '../components/homepage/Section12';
+
 const Homepage = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Kiểm tra query parameter reload
+    const params = new URLSearchParams(location.search);
+    if (params.get('reload') === 'true') {
+      // Xóa query parameter và reload trang
+      window.history.replaceState({}, document.title, '/');
+      window.location.reload();
+    }
+  }, [location]);
+
   return (
     <>
       {/* Primary Slider */}
