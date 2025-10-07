@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { login, loginWithGoogle, loginWithFacebook } from '../services/AuthService';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -7,18 +8,24 @@ const SignIn = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Xử lý đăng nhập bằng email/mật khẩu
+  // Handle errors from OAuthCallback
+  useEffect(() => {
+    if (location.state?.error) {
+      setError(location.state.error);
+    }
+  }, [location]);
+
+  // Handle login with email/password
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      // Giả lập đăng nhập thành công
-      setTimeout(() => {
-        navigate('/?reload=true');
-      }, 1000);
+      await login(email, password);
+      navigate('/?reload=true');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -26,14 +33,30 @@ const SignIn = () => {
     }
   };
 
-  // Xử lý đăng nhập bằng Google (chỉ giao diện)
-  const handleGoogleLogin = () => {
-    alert('Tính năng đăng nhập bằng Google sẽ được triển khai sau');
+  // Handle Google login
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
   };
 
-  // Xử lý đăng nhập bằng Facebook (chỉ giao diện)
-  const handleFacebookLogin = () => {
-    alert('Tính năng đăng nhập bằng Facebook sẽ được triển khai sau');
+  // Handle Facebook login
+  const handleFacebookLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      await loginWithFacebook();
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,7 +72,7 @@ const SignIn = () => {
                     <Link to="/">Home</Link>
                   </li>
                   <li className="is-marked">
-                    <Link to="/signin">Signin</Link>
+                    <Link to="/login">Signin</Link>
                   </li>
                 </ul>
               </div>
@@ -85,7 +108,7 @@ const SignIn = () => {
                       store shipping addresses, view and track your orders in your account and more.
                     </span>
                     <div className="u-s-m-b-15">
-                      <Link className="l-f-o__create-link btn--e-transparent-brand-b-2" to="/signup">
+                      <Link className="l-f-o__create-link btn--e-transparent-brand-b-2" to="/register">
                         CREATE AN ACCOUNT
                       </Link>
                     </div>
@@ -109,6 +132,7 @@ const SignIn = () => {
                             className="gl-s-api__btn gl-s-api__btn--fb" 
                             type="button"
                             onClick={handleFacebookLogin}
+                            disabled={loading}
                           >
                             <i className="fab fa-facebook-f"></i>
                             <span>Signin with Facebook</span>
@@ -119,6 +143,7 @@ const SignIn = () => {
                             className="gl-s-api__btn gl-s-api__btn--gplus" 
                             type="button"
                             onClick={handleGoogleLogin}
+                            disabled={loading}
                           >
                             <i className="fab fa-google"></i>
                             <span>Signin with Google</span>
@@ -171,7 +196,7 @@ const SignIn = () => {
                           </button>
                         </div>
                         <div className="u-s-m-b-30">
-                          <Link className="gl-link" to="/lost-password">
+                          <Link className="gl-link" to="/lostpassword">
                             Lost Your Password?
                           </Link>
                         </div>

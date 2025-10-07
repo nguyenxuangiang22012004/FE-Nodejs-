@@ -27,14 +27,16 @@ import EmptyWishlist from "../pages/EmptyWishlist";
 import NotFound from "../pages/NotFound";
 import BlogDetail from "../pages/BlogDetail";
 import BlogSidebar from "../pages/BlogSidebar";
+import OAuthCallback from "../components/OAuthCallback";
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<MainLayout />}>
           <Route index element={<Homepage />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/" element={<OAuthCallback />} />
+          <Route path="/login" element={<SignIn />} />
+          <Route path="/register" element={<Signup />} />
           <Route path="/lostpassword" element={<LostPassword />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/shopside" element={<ShopSide />} />

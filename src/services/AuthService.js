@@ -36,3 +36,33 @@ export const login = async (email, password) => {
     throw new Error(error.response?.data?.message || error.message || 'Lỗi không xác định khi đăng nhập');
   }
 };
+
+export const loginWithGoogle = async () => {
+  try {
+    console.log('📡 AuthService.loginWithGoogle() called');
+    // Chuyển hướng đến endpoint Google OAuth
+    window.location.href = 'http://localhost:3000/auth/google';
+  } catch (error) {
+    console.error('💥 Error in AuthService.loginWithGoogle:', error.message);
+    console.error('🔍 Error details:', {
+      message: error.message,
+      stack: error.stack,
+    });
+    throw new Error('Không thể khởi tạo đăng nhập Google');
+  }
+};
+
+
+export const loginWithFacebook = async () => {
+  try {
+    console.log('📡 AuthService.loginWithFacebook() called');
+    window.location.href = 'http://localhost:3000/auth/facebook';
+  } catch (error) {
+    console.error('💥 Error in AuthService.loginWithFacebook:', error.message);
+    console.error('🔍 Error details:', {
+      message: error.message,
+      stack: error.stack,
+    });
+    throw new Error('Không thể khởi tạo đăng nhập Facebook');
+  }
+};
