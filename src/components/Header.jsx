@@ -1,6 +1,15 @@
 import React from 'react';
-
+import { logout } from '../services/AuthService';
+import { useNavigate } from 'react-router-dom';
 const Header = () => {
+
+   const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login'); // Chuyển hướng về trang đăng nhập
+    };
+
   return (
     <header className="header--style-1">
       {/* Nav 1 */}
@@ -55,9 +64,9 @@ const Header = () => {
                         </a>
                       </li>
                       <li>
-                        <a href="signup.html">
+                        <a>
                           <i className="fas fa-lock-open u-s-m-r-6"></i>
-                          <span>Signout</span>
+                          <span onClick={handleLogout}>Signout</span>
                         </a>
                       </li>
                     </ul>

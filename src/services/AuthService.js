@@ -66,3 +66,8 @@ export const loginWithFacebook = async () => {
     throw new Error('Không thể khởi tạo đăng nhập Facebook');
   }
 };
+
+export const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+}
