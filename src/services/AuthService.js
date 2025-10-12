@@ -3,6 +3,27 @@ import api from '../config/axios';
 // 🔥 Mặc định mọi request gửi cookie đi
 api.defaults.withCredentials = true;
 
+export const register = async (userData) => {
+  try {
+    const response = await api.post('/auth/register', userData, { withCredentials: true });
+    const data = response.data || response;
+
+    const user = data.user || data;
+
+    if (!user || typeof user !== 'object') {
+      throw new Error('API response does not contain valid user');
+    }
+
+    localStorage.setItem('user', JSON.stringify(user));
+    window.dispatchEvent(new Event('auth-changed'));
+
+    return user;
+  } catch (error) {
+    console.error('💥 API Error in register:', error.message);
+    throw new Error(error.response?.data?.message || 'Lỗi không xác định khi đăng ký');
+  }
+};
+
 
 export const login = async (email, password) => {
   try {
