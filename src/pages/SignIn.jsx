@@ -17,44 +17,44 @@ const SignIn = () => {
     }
   }, [location]);
 
-  // Handle login with email/password
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  e.preventDefault();
+  setError('');
+  setLoading(true);
 
+  try {
+    const user = await login(email, password); 
+    // Dispatch event để header cập nhật
+    window.dispatchEvent(new Event('auth-changed'));
+
+    // Chuyển về trang chủ
+    navigate('/?reload=true', { replace: true });
+  } catch (err) {
+    console.error('Login error:', err);
+    setError(err.message || 'Đăng nhập thất bại');
+  } finally {
+    setLoading(false);
+  }
+};
+
+   // Xử lý đăng nhập Google
+  const handleGoogleLogin = () => {
     try {
-      await login(email, password);
-      navigate('/?reload=true');
+      setLoading(true);
+      loginWithGoogle();
     } catch (err) {
-      setError(err.message);
-    } finally {
+      setError(err.message || 'Không thể đăng nhập bằng Google');
       setLoading(false);
     }
   };
 
-  // Handle Google login
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError('');
-
+  // Xử lý đăng nhập Facebook
+  const handleFacebookLogin = () => {
     try {
-      await loginWithGoogle();
+      setLoading(true);
+      loginWithFacebook();
     } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
-
-  // Handle Facebook login
-  const handleFacebookLogin = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      await loginWithFacebook();
-    } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Không thể đăng nhập bằng Facebook');
       setLoading(false);
     }
   };

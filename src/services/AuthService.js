@@ -1,73 +1,104 @@
-import api from '../config/axios'; // Import instance Axios đã cấu hình
+import api from '../config/axios';
+
+// 🔥 Mặc định mọi request gửi cookie đi
+api.defaults.withCredentials = true;
+
 
 export const login = async (email, password) => {
   try {
+    const response = await api.post('/auth/login', { email, password }, { withCredentials: true });
 
-    const response = await api.post('/auth/login', {
-      email,
-      password,
-    });
+    const data = response.data || response;
+ 
+    const user = data.user || data; 
 
-
-    // Kiểm tra response có hợp lệ không
-    if (!response || typeof response !== 'object') {
-      throw new Error('API response is invalid or empty');
+    if (!user || typeof user !== 'object') {
+      throw new Error('API response does not contain valid user');
     }
 
-    // Kiểm tra success và dữ liệu user, token
-    if (!response.success || !response.data?.user || !response.data?.token) {
-      throw new Error('API response does not contain valid user or token');
-    }
+    console.log('✅ Đăng nhập thành công:', user);
 
-    // Lưu token vào localStorage
-    localStorage.setItem('token', response.data.token);
+    // Lưu user vào localStorage
+    localStorage.setItem('user', JSON.stringify(user));
+     window.dispatchEvent(new Event('auth-changed'));
 
-    return response;
-
+    return user;
   } catch (error) {
     console.error('💥 API Error in AuthService:', error.message);
-    console.error('🔍 Error details:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      stack: error.stack,
-    });
-
     throw new Error(error.response?.data?.message || error.message || 'Lỗi không xác định khi đăng nhập');
   }
 };
 
-export const loginWithGoogle = async () => {
+/**
+ * Đăng nhập Google OAuth
+ */
+export const loginWithGoogle = () => {
   try {
-    console.log('📡 AuthService.loginWithGoogle() called');
-    // Chuyển hướng đến endpoint Google OAuth
-    window.location.href = 'http://localhost:3000/auth/google';
+    console.log('📡 Chuyển hướng đến Google OAuth...');
+    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
+    window.location.href = `${backendUrl}/auth/google`;
   } catch (error) {
-    console.error('💥 Error in AuthService.loginWithGoogle:', error.message);
-    console.error('🔍 Error details:', {
-      message: error.message,
-      stack: error.stack,
-    });
+    console.error('💥 Error in loginWithGoogle:', error.message);
     throw new Error('Không thể khởi tạo đăng nhập Google');
   }
 };
 
-
-export const loginWithFacebook = async () => {
+/**
+ * Đăng nhập Facebook OAuth
+ */
+export const loginWithFacebook = () => {
   try {
-    console.log('📡 AuthService.loginWithFacebook() called');
-    window.location.href = 'http://localhost:3000/auth/facebook';
+    console.log('📡 Chuyển hướng đến Facebook OAuth...');
+    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
+    window.location.href = `${backendUrl}/auth/facebook`;
   } catch (error) {
-    console.error('💥 Error in AuthService.loginWithFacebook:', error.message);
-    console.error('🔍 Error details:', {
-      message: error.message,
-      stack: error.stack,
-    });
+    console.error('💥 Error in loginWithFacebook:', error.message);
     throw new Error('Không thể khởi tạo đăng nhập Facebook');
   }
 };
 
-export const logout = () => {
-    localStorage.removeItem('token');
+/**
+ * Đăng xuất — backend xóa cookie
+ */
+export const logout = async () => {
+  console.log('🚪 Đăng xuất...');
+  try {
+    await api.post('/auth/logout', {}, { withCredentials: true });
+  } catch (err) {
+    console.warn('⚠️ Lỗi khi gọi API logout:', err.message);
+  }
+
+  localStorage.removeItem('user');
+  window.dispatchEvent(new Event('auth-changed'));
+};
+
+/**
+ * Kiểm tra trạng thái đăng nhập (bằng cookie)
+ */
+export const checkAuth = async () => {
+  try {
+    const res = await api.get('/auth/me', { withCredentials: true });
+    if (res.data?.user) {
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      return res.data.user;
+    }
+    return null;
+  } catch (err) {
+    console.warn('⚠️ User chưa đăng nhập:', err.message);
     localStorage.removeItem('user');
-}
+    return null;
+  }
+};
+
+/**
+ * Lấy thông tin user hiện tại từ localStorage
+ */
+export const getCurrentUser = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  } catch (err) {
+    console.error('❌ Lỗi khi đọc user từ localStorage:', err);
+    return null;
+  }
+};

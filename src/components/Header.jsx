@@ -1,14 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
 import { logout } from '../services/AuthService';
 import { useNavigate } from 'react-router-dom';
 const Header = () => {
 
-   const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    setUser(storedUser ? JSON.parse(storedUser) : null);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login'); // Chuyển hướng về trang đăng nhập
+    const handleAuthChange = () => {
+      const updatedUser = localStorage.getItem("user");
+      setUser(updatedUser ? JSON.parse(updatedUser) : null);
     };
+
+    window.addEventListener("auth-changed", handleAuthChange);
+    return () => window.removeEventListener("auth-changed", handleAuthChange);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login'); 
+  };
 
   return (
     <header className="header--style-1">
@@ -24,11 +37,11 @@ const Header = () => {
             {/* Search Form */}
             <form className="main-form">
               <label htmlFor="main-search"></label>
-              <input 
-                className="input-text input-text--border-radius input-text--style-1" 
-                type="text" 
-                id="main-search" 
-                placeholder="Search" 
+              <input
+                className="input-text input-text--border-radius input-text--style-1"
+                type="text"
+                id="main-search"
+                placeholder="Search"
               />
               <button className="btn btn--icon fas fa-search main-search-button" type="submit"></button>
             </form>
@@ -41,44 +54,69 @@ const Header = () => {
                 <span className="ah-close">✕ Close</span>
 
                 <ul className="ah-list ah-list--design1 ah-list--link-color-secondary">
-                  <li className="has-dropdown" data-tooltip="tooltip" data-placement="left" title="Account">
-                    <a><i className="far fa-user-circle"></i></a>
+                  <li
+                    className="has-dropdown"
+                    data-tooltip="tooltip"
+                    data-placement="left"
+                    title="Account"
+                  >
+                    <a>
+                      <i className="far fa-user-circle"></i>
+                      {/* 👇 Hiển thị tên người dùng ngay bên cạnh icon */}
+                      {user && (
+                        <span style={{ marginLeft: "8px", fontWeight: "500" }}>
+                          {user.lastName || user.email}
+                        </span>
+                      )}
+                    </a>
                     <span className="js-menu-toggle"></span>
-                    <ul style={{width: '120px'}}>
-                      <li>
-                        <a href="dashboard.html">
-                          <i className="fas fa-user-circle u-s-m-r-6"></i>
-                          <span>Account</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a href="signup.html">
-                          <i className="fas fa-user-plus u-s-m-r-6"></i>
-                          <span>Signup</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a href="signin.html">
-                          <i className="fas fa-lock u-s-m-r-6"></i>
-                          <span>Signin</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a>
-                          <i className="fas fa-lock-open u-s-m-r-6"></i>
-                          <span onClick={handleLogout}>Signout</span>
-                        </a>
-                      </li>
-                    </ul>
+
+                    {user ? (
+                      <ul style={{ width: "140px" }}>
+                        <li>
+                          <a href="dashboard.html">
+                            <i className="fas fa-user-circle u-s-m-r-6"></i>
+                            <span>{user.name || "Tài khoản"}</span>
+                          </a>
+                        </li>
+                        <li>
+                          <a onClick={handleLogout}>
+                            <i className="fas fa-lock-open u-s-m-r-6"></i>
+                            <span>Signout</span>
+                          </a>
+                        </li>
+                      </ul>
+                    ) : (
+                      <ul style={{ width: "120px" }}>
+                        <li>
+                          <a href="dashboard.html">
+                            <i className="fas fa-user-circle u-s-m-r-6"></i>
+                            <span>Account</span>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="signup.html">
+                            <i className="fas fa-user-plus u-s-m-r-6"></i>
+                            <span>Signup</span>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="signin.html">
+                            <i className="fas fa-lock u-s-m-r-6"></i>
+                            <span>Signin</span>
+                          </a>
+                        </li>
+                      </ul>
+                    )}
                   </li>
                   <li className="has-dropdown" data-tooltip="tooltip" data-placement="left" title="Settings">
                     <a><i className="fas fa-user-cog"></i></a>
                     <span className="js-menu-toggle"></span>
-                    <ul style={{width: '120px'}}>
+                    <ul style={{ width: '120px' }}>
                       <li className="has-dropdown has-dropdown--ul-right-100">
                         <a>Language<i className="fas fa-angle-down u-s-m-l-6"></i></a>
                         <span className="js-menu-toggle"></span>
-                        <ul style={{width: '120px'}}>
+                        <ul style={{ width: '120px' }}>
                           <li><a className="u-c-brand">ENGLISH</a></li>
                           <li><a>ARABIC</a></li>
                           <li><a>FRANCAIS</a></li>
@@ -88,7 +126,7 @@ const Header = () => {
                       <li className="has-dropdown has-dropdown--ul-right-100">
                         <a>Currency<i className="fas fa-angle-down u-s-m-l-6"></i></a>
                         <span className="js-menu-toggle"></span>
-                        <ul style={{width: '225px'}}>
+                        <ul style={{ width: '225px' }}>
                           <li><a className="u-c-brand">$ - US DOLLAR</a></li>
                           <li><a>£ - BRITISH POUND STERLING</a></li>
                           <li><a>€ - EURO</a></li>
@@ -235,11 +273,11 @@ const Header = () => {
                   <li className="has-dropdown">
                     <a>PAGES<i className="fas fa-angle-down u-s-m-l-6"></i></a>
                     <span className="js-menu-toggle"></span>
-                    <ul style={{width: '170px'}}>
+                    <ul style={{ width: '170px' }}>
                       <li className="has-dropdown has-dropdown--ul-left-100">
                         <a>Home<i className="fas fa-angle-down i-state-right u-s-m-l-6"></i></a>
                         <span className="js-menu-toggle"></span>
-                        <ul style={{width: '118px'}}>
+                        <ul style={{ width: '118px' }}>
                           <li><a href="index.html">Home 1</a></li>
                           <li><a href="index-2.html">Home 2</a></li>
                           <li><a href="index-3.html">Home 3</a></li>
@@ -256,7 +294,7 @@ const Header = () => {
                   <li className="has-dropdown">
                     <a>BLOG<i className="fas fa-angle-down u-s-m-l-6"></i></a>
                     <span className="js-menu-toggle"></span>
-                    <ul style={{width: '200px'}}>
+                    <ul style={{ width: '200px' }}>
                       <li><a href="blog-left-sidebar.html">Blog Left Sidebar</a></li>
                       <li><a href="blog-right-sidebar.html">Blog Right Sidebar</a></li>
                       <li><a href="blog-sidebar-none.html">Blog Sidebar None</a></li>

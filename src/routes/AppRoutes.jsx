@@ -34,7 +34,7 @@ function AppRoutes() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route index element={<Homepage />} />
-          <Route path="/" element={<OAuthCallback />} />
+          <Route path="/oauth-callback" element={<OAuthCallback />} />
           <Route path="/login" element={<SignIn />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/lostpassword" element={<LostPassword />} />

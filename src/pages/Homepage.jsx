@@ -12,8 +12,9 @@ import Section9 from '../components/homepage/Section9';
 import Section10 from '../components/homepage/Section10';
 import Section11 from '../components/homepage/Section11';
 import Section12 from '../components/homepage/Section12';
-
+import { useAuthFromCookie } from "../hooks/useAuthFromCookie";
 const Homepage = () => {
+  // useAuthFromCookie();
   const location = useLocation();
 
   useEffect(() => {
@@ -25,7 +26,6 @@ const Homepage = () => {
       window.location.reload();
     }
   }, [location]);
-
   return (
     <>
       {/* Primary Slider */}
