@@ -9,7 +9,7 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
 
   const SUCCESS_REDIRECT_URL = import.meta.env.REACT_APP_FRONTEND_URL + "/login";
-
+  
   // ✅ Regex kiểm tra mật khẩu mạnh
   const validatePassword = (password) => {
     const passwordRegex =
@@ -42,8 +42,7 @@ const ResetPassword = () => {
       const data = await resetPassword(trimmedPassword);
       setMessage(data.message || "Đặt lại mật khẩu thành công!");
       setMessageType("success");
-
-      // ✅ Chuyển hướng sau 2 giây
+      
       setTimeout(() => {
         window.location.href = SUCCESS_REDIRECT_URL;
       }, 2000);

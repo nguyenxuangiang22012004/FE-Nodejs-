@@ -9,7 +9,7 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
   // Handle errors from OAuthCallback
   useEffect(() => {
     if (location.state?.error) {
@@ -18,26 +18,40 @@ const SignIn = () => {
   }, [location]);
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+    e.preventDefault();
+    setError('');
+    setFieldErrors({ email: '', password: '' });
 
-  try {
-    const user = await login(email, password); 
-    // Dispatch event để header cập nhật
-    window.dispatchEvent(new Event('auth-changed'));
+    // Client-side validation
+    const newErrors = {};
+    if (!email.trim()) newErrors.email = 'Email không được để trống';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Email không hợp lệ';
+    if (!password.trim()) newErrors.password = 'Mật khẩu không được để trống';
 
-    // Chuyển về trang chủ
-    navigate('/?reload=true', { replace: true });
-  } catch (err) {
-    console.error('Login error:', err);
-    setError(err.message || 'Đăng nhập thất bại');
-  } finally {
-    setLoading(false);
-  }
-};
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
+      return;
+    }
 
-   // Xử lý đăng nhập Google
+    setLoading(true);
+    try {
+      const user = await login(email, password);
+      window.dispatchEvent(new Event('auth-changed'));
+      navigate('/?reload=true', { replace: true });
+    } catch (err) {
+      console.error('Login error:', err);
+      // Nếu backend trả lỗi cụ thể
+      if (err.field) {
+        setFieldErrors(prev => ({ ...prev, [err.field]: err.message }));
+      } else {
+        setError(err.message || 'Đăng nhập thất bại');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xử lý đăng nhập Google
   const handleGoogleLogin = () => {
     try {
       setLoading(true);
@@ -58,6 +72,12 @@ const SignIn = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      alert(error);
+    }
+  }, [error]);
 
   return (
     <>
@@ -118,18 +138,12 @@ const SignIn = () => {
                       If you have an account with us, please log in.
                     </span>
 
-                    {error && (
-                      <div className="u-s-m-b-15">
-                        <span className="gl-text u-c-danger">{error}</span>
-                      </div>
-                    )}
-
                     <form className="l-f-o__form" onSubmit={handleLogin}>
                       {/* Social Login Buttons */}
                       <div className="gl-s-api">
                         <div className="u-s-m-b-15">
-                          <button 
-                            className="gl-s-api__btn gl-s-api__btn--fb" 
+                          <button
+                            className="gl-s-api__btn gl-s-api__btn--fb"
                             type="button"
                             onClick={handleFacebookLogin}
                             disabled={loading}
@@ -139,8 +153,8 @@ const SignIn = () => {
                           </button>
                         </div>
                         <div className="u-s-m-b-15">
-                          <button 
-                            className="gl-s-api__btn gl-s-api__btn--gplus" 
+                          <button
+                            className="gl-s-api__btn gl-s-api__btn--gplus"
                             type="button"
                             onClick={handleGoogleLogin}
                             disabled={loading}
@@ -170,6 +184,10 @@ const SignIn = () => {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                         />
+                        {fieldErrors.email && (
+                          <p className="error-text">{fieldErrors.email}</p>
+                        )}
+
                       </div>
 
                       <div className="u-s-m-b-30">
@@ -183,6 +201,9 @@ const SignIn = () => {
                           onChange={(e) => setPassword(e.target.value)}
                           required
                         />
+                        {fieldErrors.password && (
+                          <p className="error-text">{fieldErrors.password}</p>
+                        )}
                       </div>
 
                       <div className="gl-inline">
@@ -204,9 +225,9 @@ const SignIn = () => {
 
                       <div className="u-s-m-b-30">
                         <div className="check-box">
-                          <input 
-                            type="checkbox" 
-                            id="remember-me" 
+                          <input
+                            type="checkbox"
+                            id="remember-me"
                           />
                           <div className="check-box__state check-box__state--primary">
                             <label className="check-box__label" htmlFor="remember-me">
@@ -215,6 +236,7 @@ const SignIn = () => {
                           </div>
                         </div>
                       </div>
+                      
                     </form>
                   </div>
                 </div>
@@ -251,6 +273,24 @@ const SignIn = () => {
           position: relative;
           z-index: 1;
         }
+          .error-text {
+  color: #e53935;
+  font-size: 13px;
+  margin-top: 5px;
+}
+  .alert {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.alert-danger {
+  background-color: #ffe5e5;
+  color: #b30000;
+  border: 1px solid #ffb3b3;
+}
+  
       `}</style>
     </>
   );

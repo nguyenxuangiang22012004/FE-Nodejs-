@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { register } from '../services/AuthService';
+
 const Signup = () => {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -18,15 +19,15 @@ const Signup = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
   const handleDateChange = (e) => {
     const { name, value } = e.target;
-
     const [year, month, day] = (formData.birthday || '').split('-');
     const updated = { year, month, day, [name]: value };
-
     const birthdayString = `${updated.year || ''}-${updated.month || ''}-${updated.day || ''}`;
     setFormData({ ...formData, birthday: birthdayString });
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -34,10 +35,10 @@ const Signup = () => {
     setError('');
 
     try {
-      await register(formData); 
-      setMessage('Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.');
+      await register(formData);
+      setMessage('Registration successful! Please check your email to verify your account.');
     } catch (err) {
-      setError(err.message || 'Đã có lỗi xảy ra khi đăng ký.');
+      setError(err.message || 'An error occurred during registration.');
     } finally {
       setLoading(false);
     }
@@ -56,7 +57,7 @@ const Signup = () => {
                     <Link to="/">Home</Link>
                   </li>
                   <li className="is-marked">
-                    <Link to="/signup">Signup</Link>
+                    <Link to="/signup">Sign Up</Link>
                   </li>
                 </ul>
               </div>
@@ -73,7 +74,7 @@ const Signup = () => {
             <div className="row">
               <div className="col-lg-12">
                 <div className="section__text-wrap">
-                  <h1 className="section__heading u-c-secondary">TẠO TÀI KHOẢN</h1>
+                  <h1 className="section__heading u-c-secondary">CREATE AN ACCOUNT</h1>
                 </div>
               </div>
             </div>
@@ -86,36 +87,32 @@ const Signup = () => {
               <div className="col-lg-6 col-md-8 u-s-m-b-30">
                 <div className="l-f-o">
                   <div className="l-f-o__pad-box">
-                    <h1 className="gl-h1">THÔNG TIN CÁ NHÂN</h1>
-
-                    {/* Hiển thị thông báo thành công hoặc lỗi */}
-                    {message && <div className="alert alert-success">{message}</div>}
-                    {error && <div className="alert alert-danger">{error}</div>}
+                    <h1 className="gl-h1">PERSONAL INFORMATION</h1>
 
                     <form className="l-f-o__form" onSubmit={handleSubmit}>
                       <div className="gl-s-api">
                         <div className="u-s-m-b-15">
                           <button className="gl-s-api__btn gl-s-api__btn--fb" type="button">
                             <i className="fab fa-facebook-f"></i>
-                            <span>Đăng ký với Facebook</span>
+                            <span>Sign up with Facebook</span>
                           </button>
                         </div>
                         <div className="u-s-m-b-30">
                           <button className="gl-s-api__btn gl-s-api__btn--gplus" type="button">
                             <i className="fab fa-google"></i>
-                            <span>Đăng ký với Google</span>
+                            <span>Sign up with Google</span>
                           </button>
                         </div>
                       </div>
 
                       <div className="u-s-m-b-30">
-                        <label className="gl-label" htmlFor="reg-fname">HỌ *</label>
+                        <label className="gl-label" htmlFor="reg-fname">FIRST NAME *</label>
                         <input
                           className="input-text input-text--primary-style"
                           type="text"
                           id="reg-fname"
                           name="firstName"
-                          placeholder="Họ"
+                          placeholder="First Name"
                           value={formData.firstName}
                           onChange={handleInputChange}
                           required
@@ -123,13 +120,13 @@ const Signup = () => {
                       </div>
 
                       <div className="u-s-m-b-30">
-                        <label className="gl-label" htmlFor="reg-lname">TÊN *</label>
+                        <label className="gl-label" htmlFor="reg-lname">LAST NAME *</label>
                         <input
                           className="input-text input-text--primary-style"
                           type="text"
                           id="reg-lname"
                           name="lastName"
-                          placeholder="Tên"
+                          placeholder="Last Name"
                           value={formData.lastName}
                           onChange={handleInputChange}
                           required
@@ -138,33 +135,26 @@ const Signup = () => {
 
                       <div className="gl-inline">
                         <div className="u-s-m-b-30">
-                          <span className="gl-label">NGÀY SINH</span>
+                          <span className="gl-label">DATE OF BIRTH</span>
                           <div className="gl-dob">
                             <select
                               className="select-box select-box--primary-style"
                               name="month"
                               onChange={handleDateChange}
                             >
-                              <option value="">Tháng</option>
-                              <option value="01">Tháng 1</option>
-                              <option value="02">Tháng 2</option>
-                              <option value="03">Tháng 3</option>
-                              <option value="04">Tháng 4</option>
-                              <option value="05">Tháng 5</option>
-                              <option value="06">Tháng 6</option>
-                              <option value="07">Tháng 7</option>
-                              <option value="08">Tháng 8</option>
-                              <option value="09">Tháng 9</option>
-                              <option value="10">Tháng 10</option>
-                              <option value="11">Tháng 11</option>
-                              <option value="12">Tháng 12</option>
+                              <option value="">Month</option>
+                              {Array.from({ length: 12 }, (_, i) => (
+                                <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                                  {new Date(0, i).toLocaleString('en', { month: 'long' })}
+                                </option>
+                              ))}
                             </select>
                             <select
                               className="select-box select-box--primary-style"
                               name="day"
                               onChange={handleDateChange}
                             >
-                              <option value="">Ngày</option>
+                              <option value="">Day</option>
                               {Array.from({ length: 31 }, (_, i) => (
                                 <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
                                   {String(i + 1).padStart(2, '0')}
@@ -176,7 +166,7 @@ const Signup = () => {
                               name="year"
                               onChange={handleDateChange}
                             >
-                              <option value="">Năm</option>
+                              <option value="">Year</option>
                               {Array.from({ length: 100 }, (_, i) => {
                                 const year = new Date().getFullYear() - i;
                                 return (
@@ -190,7 +180,7 @@ const Signup = () => {
                         </div>
 
                         <div className="u-s-m-b-30">
-                          <label className="gl-label" htmlFor="gender">GIỚI TÍNH</label>
+                          <label className="gl-label" htmlFor="gender">GENDER</label>
                           <select
                             className="select-box select-box--primary-style u-w-100"
                             id="gender"
@@ -198,9 +188,9 @@ const Signup = () => {
                             value={formData.gender}
                             onChange={handleInputChange}
                           >
-                            <option value="">Chọn</option>
-                            <option value="male">Nam</option>
-                            <option value="female">Nữ</option>
+                            <option value="">Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
                           </select>
                         </div>
                       </div>
@@ -212,7 +202,7 @@ const Signup = () => {
                           type="email"
                           id="reg-email"
                           name="email"
-                          placeholder="Nhập E-mail"
+                          placeholder="Enter your email"
                           value={formData.email}
                           onChange={handleInputChange}
                           required
@@ -220,13 +210,13 @@ const Signup = () => {
                       </div>
 
                       <div className="u-s-m-b-30">
-                        <label className="gl-label" htmlFor="reg-password">MẬT KHẨU *</label>
+                        <label className="gl-label" htmlFor="reg-password">PASSWORD *</label>
                         <input
                           className="input-text input-text--primary-style"
                           type="password"
                           id="reg-password"
                           name="password"
-                          placeholder="Nhập Mật Khẩu"
+                          placeholder="Enter your password"
                           value={formData.password}
                           onChange={handleInputChange}
                           required
@@ -239,14 +229,26 @@ const Signup = () => {
                           type="submit"
                           disabled={loading}
                         >
-                          {loading ? 'Đang xử lý...' : 'TẠO TÀI KHOẢN'}
+                          {loading ? 'Processing...' : 'CREATE ACCOUNT'}
                         </button>
                       </div>
 
                       <Link className="gl-link" to="/">
-                        Quay lại cửa hàng
+                        Back to Shop
                       </Link>
                     </form>
+
+                    {/* Success & Error Messages */}
+                    {message && (
+                      <div className="alert custom-alert u-s-m-t-20" role="alert">
+                        {message}
+                      </div>
+                    )}
+                    {error && (
+                      <div className="alert custom-alert u-s-m-t-20" role="alert">
+                        {error}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -254,7 +256,17 @@ const Signup = () => {
           </div>
         </div>
       </div>
-      {/*====== End - Section 2 ======*/}
+      <style jsx>{`
+  .custom-alert {
+    background-color: #ffe5e5; /* nền đỏ nhạt */
+    color: #b30000; /* chữ đỏ đậm */
+    border: 1px solid #ffb3b3;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-weight: 500;
+  }
+`}</style>
+
     </>
   );
 };
