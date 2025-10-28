@@ -10,30 +10,27 @@ const OAuthCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        console.log("🔄 Bắt đầu xử lý OAuth callback...");
 
         // Xử lý lỗi Facebook redirect có thêm #_=_
         if (window.location.hash === "#_=_") {
           window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-
-        console.log("📡 Gọi API /auth/me để lấy thông tin user...");
-        const response = await axios.get(`${backendUrl}/auth/me`, {
-          withCredentials: true, // ⚡ Quan trọng: gửi cookie kèm theo
+        const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || "http://localhost:3000";
+        
+        const response = await axios.get(`${backendUrl}/me`, {
+          withCredentials: true, 
         });
-
-        if (!response.data || !response.data.user) {
+        
+        if (!response.data.data) {
           throw new Error("Không nhận được dữ liệu user từ backend");
         }
 
-        const user = response.data.user;
-        console.log("✅ Nhận user từ backend:", user);
+        const user = response.data.data;
+        
 
         // Lưu user vào localStorage để hiển thị UI
         localStorage.setItem("user", JSON.stringify(user));
-        console.log("💾 Đã lưu user vào localStorage");
 
         // Dispatch event để Header cập nhật trạng thái đăng nhập
         window.dispatchEvent(new Event("auth-changed"));

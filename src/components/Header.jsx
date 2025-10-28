@@ -6,12 +6,22 @@ const Header = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    setUser(storedUser ? JSON.parse(storedUser) : null);
+    const safeParseUser = () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (!storedUser || storedUser === "undefined") return null;
+        return JSON.parse(storedUser);
+      } catch (err) {
+        console.error("Lỗi parse user từ localStorage:", err);
+        localStorage.removeItem("user"); // dọn lỗi
+        return null;
+      }
+    };
+
+    setUser(safeParseUser());
 
     const handleAuthChange = () => {
-      const updatedUser = localStorage.getItem("user");
-      setUser(updatedUser ? JSON.parse(updatedUser) : null);
+      setUser(safeParseUser());
     };
 
     window.addEventListener("auth-changed", handleAuthChange);
@@ -20,7 +30,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login'); 
+    navigate('/login');
   };
 
   return (

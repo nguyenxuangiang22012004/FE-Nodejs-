@@ -27,26 +27,39 @@ export const register = async (userData) => {
 
 export const login = async (email, password) => {
   try {
-    const response = await api.post('/auth/login', { email, password }, { withCredentials: true });
+    // 1️⃣ Gửi login request
+     await api.post(
+      "/auth/login",
+      { email, password },
+      { withCredentials: true } // cookie sẽ được lưu bởi browser
+    )
 
-    const data = response.data || response;
- 
-    const user = data.user || data; 
+    // 2️⃣ Sau khi login, gọi /auth/me để lấy thông tin user
+    const meResponse = await api.get("/me", { withCredentials: true });
+    const user = meResponse.data?.data || meResponse.data;
 
-    if (!user || typeof user !== 'object') {
-      throw new Error('API response does not contain valid user');
+    if (!user || typeof user !== "object") {
+      throw new Error("Không thể lấy thông tin người dùng sau khi đăng nhập");
     }
 
-    console.log('✅ Đăng nhập thành công:', user);
+    console.log("✅ Đăng nhập thành công:", user);
 
-    // Lưu user vào localStorage
-    localStorage.setItem('user', JSON.stringify(user));
-     window.dispatchEvent(new Event('auth-changed'));
+    // 3️⃣ Lưu user vào localStorage
+    localStorage.setItem("user", JSON.stringify(user));
+
+    // 4️⃣ Gửi sự kiện cập nhật auth toàn app
+    window.dispatchEvent(new Event("auth-changed"));
 
     return user;
   } catch (error) {
-    console.error('💥 API Error in AuthService:', error.message);
-    throw new Error(error.response?.data?.message || error.message || 'Lỗi không xác định khi đăng nhập');
+    console.error("💥 API Error in AuthService:", error);
+
+    // 5️⃣ Xử lý lỗi thân thiện
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Lỗi không xác định khi đăng nhập"
+    );
   }
 };
 
@@ -63,6 +76,7 @@ export const loginWithGoogle = () => {
     throw new Error('Không thể khởi tạo đăng nhập Google');
   }
 };
+
 
 /**
  * Đăng nhập Facebook OAuth
@@ -93,33 +107,3 @@ export const logout = async () => {
   window.dispatchEvent(new Event('auth-changed'));
 };
 
-/**
- * Kiểm tra trạng thái đăng nhập (bằng cookie)
- */
-export const checkAuth = async () => {
-  try {
-    const res = await api.get('/auth/me', { withCredentials: true });
-    if (res.data?.user) {
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      return res.data.user;
-    }
-    return null;
-  } catch (err) {
-    console.warn('⚠️ User chưa đăng nhập:', err.message);
-    localStorage.removeItem('user');
-    return null;
-  }
-};
-
-/**
- * Lấy thông tin user hiện tại từ localStorage
- */
-export const getCurrentUser = () => {
-  try {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-  } catch (err) {
-    console.error('❌ Lỗi khi đọc user từ localStorage:', err);
-    return null;
-  }
-};
