@@ -8,7 +8,7 @@ const ResetPassword = () => {
   const [messageType, setMessageType] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const SUCCESS_REDIRECT_URL = import.meta.env.VITE_FRONTEND_URL + "/login";
+  const SUCCESS_REDIRECT_URL = import.meta.env.REACT_APP_FRONTEND_URL + "/login";
 
   // ✅ Regex kiểm tra mật khẩu mạnh
   const validatePassword = (password) => {
