@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Breadcrumb from '../components/Breadcrumb';
-
+import {requestPasswordReset} from "../services/AuthService"
 const LostPassword = () => {
   const [email, setEmail] = useState('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Reset password for:', email);
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await requestPasswordReset(email);
+    alert(res.message || "✅ Đã gửi email đặt lại mật khẩu! Vui lòng kiểm tra hộp thư của bạn.");
+    setEmail("");
+  } catch (err) {
+    console.error("Lỗi reset password:", err);
+    alert(err.message || "❌ Gửi yêu cầu thất bại. Vui lòng thử lại sau.");
+  }
+};
 
   const breadcrumbItems = [
     { label: 'Home', link: '/', hasSeparator: true },

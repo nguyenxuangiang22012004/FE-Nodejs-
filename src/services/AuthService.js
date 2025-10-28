@@ -107,3 +107,28 @@ export const logout = async () => {
   window.dispatchEvent(new Event('auth-changed'));
 };
 
+export const requestPasswordReset = async (email) => {
+  try {
+    const res = await api.post("/auth/send-reset-password", { email });
+    return res.data; 
+  } catch (error) {
+    console.error("💥 Error in requestPasswordReset:", error);
+    throw new Error(
+      error.response?.data?.message || "Không thể gửi yêu cầu đặt lại mật khẩu"
+    );
+  }
+};
+
+export const resetPassword = async (password) => {
+  try {
+    const res = await api.patch(
+      "/auth/reset-password",
+      { password },
+      { withCredentials: true } 
+    );
+    return res.data;
+  } catch (error) {
+    console.error("❌ Reset password error:", error);
+    throw error.response?.data || { message: "Server error" };
+  }
+};

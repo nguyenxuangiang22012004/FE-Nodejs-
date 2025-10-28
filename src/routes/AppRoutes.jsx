@@ -28,6 +28,7 @@ import NotFound from "../pages/NotFound";
 import BlogDetail from "../pages/BlogDetail";
 import BlogSidebar from "../pages/BlogSidebar";
 import OAuthCallback from "../components/OAuthCallback";
+import ResetPassword from "../pages/ResetPassword";
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -38,6 +39,7 @@ function AppRoutes() {
           <Route path="/login" element={<SignIn />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/lostpassword" element={<LostPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/shopside" element={<ShopSide />} />
           <Route path="/product-detail/:productId" element={<ProductDetail />} />
