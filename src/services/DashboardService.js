@@ -12,3 +12,13 @@ export const getUserProfile = async () => {
     throw error;
   }
 };
+
+export const updateUserProfile = async (data) => {
+  try {
+    const res = await api.patch("/manager-profile/profile", data);
+    return res.data;
+  } catch (error) {
+    console.error("Update profile failed:", error);
+    throw error.response?.data || error;
+  }
+};

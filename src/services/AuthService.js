@@ -1,6 +1,5 @@
 import api from '../config/axios';
 
-// 🔥 Mặc định mọi request gửi cookie đi
 api.defaults.withCredentials = true;
 
 export const register = async (userData) => {

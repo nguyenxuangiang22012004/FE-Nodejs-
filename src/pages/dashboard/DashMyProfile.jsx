@@ -155,7 +155,7 @@ const DashMyProfile = () => {
                         </div>
                         <div className="col-lg-4 u-s-m-b-30">
                           <h2 className="dash__h2 u-s-m-b-8">Phone</h2>
-                          <span className="dash__text">{user.phone || "Not provided"}</span>
+                          <span className="dash__text">{user.phoneNumber || "Not provided"}</span>
                         </div>
                         <div className="col-lg-4 u-s-m-b-30">
                           <h2 className="dash__h2 u-s-m-b-8">Birthday</h2>
@@ -173,6 +173,7 @@ const DashMyProfile = () => {
                             <Link
                               className="dash__custom-link btn--e-transparent-brand-b-2"
                               to="/dashboard/dash-edit-profile"
+                              state={{ user }}
                             >
                               Edit Profile
                             </Link>
