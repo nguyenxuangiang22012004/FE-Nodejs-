@@ -50,11 +50,6 @@ const DashEditProfile = () => {
                       <span className="dash__text u-s-m-b-30">
                         Looks like you haven't update your profile
                       </span>
-                      <div className="dash__link dash__link--secondary u-s-m-b-30">
-                        <a data-modal="modal" data-modal-id="#dash-newsletter">
-                          Subscribe Newsletter
-                        </a>
-                      </div>
                       <div className="row">
                         <div className="col-lg-12">
                           <form className="dash-edit-p" onSubmit={handleSubmit}>
@@ -127,22 +122,27 @@ const DashEditProfile = () => {
                             </div>
                             <div className="gl-inline">
                               <div className="u-s-m-b-30">
-                                <h2 className="dash__h2 u-s-m-b-8">E-mail</h2>
-                                <span className="dash__text">
-                                  johndoe@domain.com
-                                </span>
-                                <div className="dash__link dash__link--secondary">
-                                  <a href="#">Change</a>
-                                </div>
+                                <label className="gl-label" htmlFor="reg-email">
+                                  E-MAIL *
+                                </label>
+                                <input
+                                  className="input-text input-text--primary-style"
+                                  type="email"
+                                  id="reg-email"
+                                  placeholder="johndoe@domain.com"
+                                  defaultValue="johndoe@domain.com"
+                                />
                               </div>
                               <div className="u-s-m-b-30">
-                                <h2 className="dash__h2 u-s-m-b-8">Phone</h2>
-                                <span className="dash__text">
-                                  Please enter your mobile
-                                </span>
-                                <div className="dash__link dash__link--secondary">
-                                  <a href="#">Add</a>
-                                </div>
+                                <label className="gl-label" htmlFor="reg-phone">
+                                  PHONE
+                                </label>
+                                <input
+                                  className="input-text input-text--primary-style"
+                                  type="tel"
+                                  id="reg-phone"
+                                  placeholder="Please enter your mobile"
+                                />
                               </div>
                             </div>
                             <button className="btn btn--e-brand-b-2" type="submit">

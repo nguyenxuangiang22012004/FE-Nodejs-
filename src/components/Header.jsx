@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { logout } from '../services/AuthService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 const Header = () => {
 
   const navigate = useNavigate();
@@ -84,10 +84,10 @@ const Header = () => {
                     {user ? (
                       <ul style={{ width: "140px" }}>
                         <li>
-                          <a href="dashboard.html">
+                          <Link to="/dashboard/dash-my-profile">
                             <i className="fas fa-user-circle u-s-m-r-6"></i>
-                            <span>{user.name || "Tài khoản"}</span>
-                          </a>
+                            <span>{"Profile"}</span>
+                          </Link>
                         </li>
                         <li>
                           <a onClick={handleLogout}>
@@ -99,10 +99,10 @@ const Header = () => {
                     ) : (
                       <ul style={{ width: "120px" }}>
                         <li>
-                          <a href="dashboard.html">
+                          <Link to="/dashboard/dash-my-profile">
                             <i className="fas fa-user-circle u-s-m-r-6"></i>
                             <span>Account</span>
-                          </a>
+                          </Link>
                         </li>
                         <li>
                           <a href="signup.html">
