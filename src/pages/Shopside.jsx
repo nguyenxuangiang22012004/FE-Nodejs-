@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import CategoryFilter from '../components/shopside/CategoryFilter';
 import ColorFilter from '../components/shopside/ColorFilter';
@@ -9,16 +10,25 @@ import ProductCard from '../components/shopside/ProductCard';
 import RatingFilter from '../components/shopside/RatingFilter';
 import ShippingFilter from '../components/shopside/ShippingFilter';
 import SizeFilter from "../components/shopside/SizeFilter";
-import {getAllProducts} from "../services/NewArrivalService";
+import { getAllProducts } from "../services/NewArrivalService";
 const ShopSide = () => {
     const [isGridActive, setIsGridActive] = useState(true);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchParams] = useSearchParams();
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const data = await getAllProducts();
+
+                const filters = {
+                    q: searchParams.get("q") || "",
+                    subcategoryId: searchParams.get("id") || "",
+                    limit: parseInt(searchParams.get("limit")) || 12,
+                    offset: parseInt(searchParams.get("offset")) || 0,
+                };
+
+                const data = await getAllProducts(filters);
                 setProducts(data || []); // tùy API trả về
             } catch (error) {
                 console.error("Lỗi khi lấy sản phẩm:", error);
@@ -28,7 +38,7 @@ const ShopSide = () => {
         };
 
         fetchProducts();
-    }, []);
+    }, [searchParams]);
 
 
     const handleQuickLook = () => {

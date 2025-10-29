@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { getAllCategories } from "../../services/NewArrivalService";
-
+import { useNavigate, useSearchParams } from "react-router-dom";
 const CategoryFilter = () => {
   const [categories, setCategories] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
-
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -24,6 +25,19 @@ const CategoryFilter = () => {
     }));
   };
 
+  const handleSubCategoryClick = (subId) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (subId) {
+      newParams.set("id", subId);
+    } else {
+      newParams.delete("id");
+    }
+    newParams.set("offset", 0);
+    navigate(`?${newParams.toString()}`);
+  };
+
+
+
   return (
     <div className="shop-w shop-w--style">
       <div className="shop-w__intro-wrap">
@@ -40,18 +54,20 @@ const CategoryFilter = () => {
           {categories.length > 0 ? (
             categories.map((category) => (
               <li key={category.id} className="has-list">
-                <a href="#">{category.name}</a>
-                
+                <a href="" onClick={() => handleSubCategoryClick(null)}>
+                  {category.name}
+                </a>
+
                 {/* Hiển thị số lượng subcategories */}
                 {category.subcategories && category.subcategories.length > 0 && (
                   <span className="category-list__text u-s-m-l-6">
                     ({category.subcategories.length})
                   </span>
                 )}
-                
+
                 {/* Icon toggle */}
                 {category.subcategories && category.subcategories.length > 0 && (
-                  <span 
+                  <span
                     className={`js-shop-category-span ${expandedCategories[category.id] ? 'is-expanded' : ''} fas fa-plus u-s-m-l-6`}
                     onClick={() => toggleCategory(category.id)}
                     style={{ cursor: 'pointer' }}
@@ -60,13 +76,15 @@ const CategoryFilter = () => {
 
                 {/* Subcategories list */}
                 {category.subcategories && category.subcategories.length > 0 && (
-                  <ul 
+                  <ul
                     className="shop-w__category-list"
                     style={{ display: expandedCategories[category.id] ? 'block' : 'none' }}
                   >
                     {category.subcategories.map((sub) => (
                       <li key={sub.id}>
-                        <a href="#">{sub.name}</a>
+                         <a href="" onClick={() => handleSubCategoryClick(sub.id)}>
+                          {sub.name}
+                        </a>
                       </li>
                     ))}
                   </ul>
