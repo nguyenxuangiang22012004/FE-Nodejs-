@@ -22,3 +22,13 @@ export const updateUserProfile = async (data) => {
     throw error.response?.data || error;
   }
 };
+
+export const sendMailResetPassword = async () => {
+  try {
+    const res = await api.post("/manager-profile/profile",{ withCredentials: true });
+    return res; 
+  } catch (error) {
+    console.error("❌ Fetch user profile failed:", error);
+    throw error;
+  }
+};

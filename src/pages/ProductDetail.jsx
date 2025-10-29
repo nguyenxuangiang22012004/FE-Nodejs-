@@ -26,9 +26,6 @@ const ProductDetail = () => {
     setQuantity((prev) => Math.max(1, prev + change));
   };
 
-  const handleAddToCart = () => {
-    console.log(`Added ${quantity} ${product.name} to cart`);
-  };
 
   return (
     <>

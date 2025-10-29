@@ -26,14 +26,12 @@ export const register = async (userData) => {
 
 export const login = async (email, password) => {
   try {
-    // 1️⃣ Gửi login request
      await api.post(
       "/auth/login",
       { email, password },
-      { withCredentials: true } // cookie sẽ được lưu bởi browser
+      { withCredentials: true } 
     )
 
-    // 2️⃣ Sau khi login, gọi /auth/me để lấy thông tin user
     const meResponse = await api.get("/me", { withCredentials: true });
     const user = meResponse.data?.data || meResponse.data;
 
@@ -95,7 +93,6 @@ export const loginWithFacebook = () => {
  * Đăng xuất — backend xóa cookie
  */
 export const logout = async () => {
-  console.log('🚪 Đăng xuất...');
   try {
     await api.post('/auth/logout', {}, { withCredentials: true });
   } catch (err) {

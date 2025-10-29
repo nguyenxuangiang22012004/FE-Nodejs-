@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getUserProfile } from "../../services/DashboardService";
+import { getUserProfile ,sendMailResetPassword } from "../../services/DashboardService";
 
 const DashMyProfile = () => {
   const [user, setUser] = useState(null);
@@ -17,7 +17,6 @@ const DashMyProfile = () => {
       try {
         setLoading(true);
         const res = await getUserProfile();
-        console.log(res);
         if (res.success) {
           setUser(res.data);
         } else {
@@ -41,6 +40,20 @@ const DashMyProfile = () => {
       </div>
     );
   }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await sendMailResetPassword();
+      if (res?.success) {
+        alert("✅ Reset password email sent!");
+      }
+    } catch (err) {
+      alert("⚠️ Error sending reset password email.");
+      console.error(err);
+    }
+  };
 
   if (error) {
     return (
@@ -179,7 +192,11 @@ const DashMyProfile = () => {
                             </Link>
                           </div>
                           <div>
-                            <Link className="dash__custom-link btn--e-brand-b-2" to="#">
+                            <Link
+                              className="dash__custom-link btn--e-brand-b-2"
+                              to="#"
+                              onClick={handleChangePassword}
+                            >
                               Change Password
                             </Link>
                           </div>
