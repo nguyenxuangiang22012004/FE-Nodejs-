@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import CategoryFilter from '../components/shopside/CategoryFilter';
 import ColorFilter from '../components/shopside/ColorFilter';
@@ -15,7 +15,12 @@ const ShopSide = () => {
     const [isGridActive, setIsGridActive] = useState(true);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const navigate = useNavigate();
+
     const [searchParams] = useSearchParams();
+    const selectedLimit = parseInt(searchParams.get("limit")) || 12;
+
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -53,6 +58,15 @@ const ShopSide = () => {
         setShowQuickLook(false);
         setShowAddToCart(false);
     };
+    const handleLimitChange = (e) => {
+        const newLimit = parseInt(e.target.value);
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set("limit", newLimit);
+        newParams.set("offset", 0); // reset trang
+        navigate(`?${newParams.toString()}`);
+    };
+
+
 
     return (
         <div className="app-content">
@@ -140,11 +154,15 @@ const ShopSide = () => {
                                         <form>
                                             <div className="tool-style__form-wrap">
                                                 <div className="u-s-m-b-8">
-                                                    <select className="select-box select-box--transparent-b-2">
-                                                        <option>Show: 8</option>
-                                                        <option selected>Show: 12</option>
-                                                        <option>Show: 16</option>
-                                                        <option>Show: 28</option>
+                                                    <select
+                                                        className="select-box select-box--transparent-b-2"
+                                                        value={selectedLimit}
+                                                        onChange={handleLimitChange}
+                                                    >
+                                                        <option value="8">Show: 8</option>
+                                                        <option value="12">Show: 12</option>
+                                                        <option value="16">Show: 16</option>
+                                                        <option value="28">Show: 28</option>
                                                     </select>
                                                 </div>
                                                 <div className="u-s-m-b-8">
