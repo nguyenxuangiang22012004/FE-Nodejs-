@@ -9,33 +9,27 @@ import ProductCard from '../components/shopside/ProductCard';
 import RatingFilter from '../components/shopside/RatingFilter';
 import ShippingFilter from '../components/shopside/ShippingFilter';
 import SizeFilter from "../components/shopside/SizeFilter";
+import {getAllProducts} from "../services/NewArrivalService";
 const ShopSide = () => {
     const [isGridActive, setIsGridActive] = useState(true);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Sample product data
-    const products = [
-        {
-            id: 1,
-            name: "New Fashion B Nice Elegant",
-            category: "Men Clothing",
-            price: "$125.00",
-            image: "images/product/men/product6.jpg",
-            rating: 3.5,
-            reviews: 23,
-            description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry..."
-        },
-        {
-            id: 2,
-            name: "New Dress A Nice Elegant",
-            category: "Women Clothing",
-            price: "$125.00",
-            image: "images/product/women/product5.jpg",
-            rating: 3.5,
-            reviews: 23,
-            description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry..."
-        },
-        // Add more products as needed
-    ];
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await getAllProducts();
+                setProducts(data || []); // tùy API trả về
+            } catch (error) {
+                console.error("Lỗi khi lấy sản phẩm:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
 
     const handleQuickLook = () => {
         setShowQuickLook(true);
@@ -63,38 +57,38 @@ const ShopSide = () => {
                                     <i className="fas fa-filter u-s-m-r-8"></i>
                                     <span>FILTERS</span>
                                 </h1>
-                                
+
                                 <div className="shop-w-master__sidebar">
                                     {/* Category Filter */}
                                     <div className="u-s-m-b-30">
                                         <CategoryFilter />
                                     </div>
-                                    
+
                                     {/* Rating Filter */}
                                     <div className="u-s-m-b-30">
                                         <RatingFilter />
                                     </div>
-                                    
+
                                     {/* Shipping Filter */}
                                     <div className="u-s-m-b-30">
                                         <ShippingFilter />
                                     </div>
-                                    
+
                                     {/* Price Filter */}
                                     <div className="u-s-m-b-30">
                                         <PriceFilter />
                                     </div>
-                                    
+
                                     {/* Manufacturer Filter */}
                                     <div className="u-s-m-b-30">
                                         <ManufacturerFilter />
                                     </div>
-                                    
+
                                     {/* Color Filter */}
                                     <div className="u-s-m-b-30">
                                         <ColorFilter />
                                     </div>
-                                    
+
                                     {/* Size Filter */}
                                     <div className="u-s-m-b-30">
                                         <SizeFilter />
@@ -102,7 +96,7 @@ const ShopSide = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         {/* Products Grid */}
                         <div className="col-lg-9 col-md-12">
                             <div className="shop-p">
@@ -116,23 +110,23 @@ const ShopSide = () => {
                                             <a className="gl-tag btn--e-brand-shadow" href="#">books & audible</a>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="shop-p__tool-style">
                                         <div className="tool-style__group u-s-m-b-8">
-                                            <span 
+                                            <span
                                                 className={`js-shop-grid-target ${isGridActive ? 'is-active' : ''}`}
                                                 onClick={() => setIsGridActive(true)}
                                             >
                                                 Grid
                                             </span>
-                                            <span 
+                                            <span
                                                 className={`js-shop-list-target ${!isGridActive ? 'is-active' : ''}`}
                                                 onClick={() => setIsGridActive(false)}
                                             >
                                                 List
                                             </span>
                                         </div>
-                                        
+
                                         <form>
                                             <div className="tool-style__form-wrap">
                                                 <div className="u-s-m-b-8">
@@ -157,20 +151,20 @@ const ShopSide = () => {
                                         </form>
                                     </div>
                                 </div>
-                                
+
                                 <div className="shop-p__collection">
                                     <div className={`row ${isGridActive ? 'is-grid-active' : ''}`}>
                                         {products.map(product => (
-                                            <ProductCard 
-                                                key={product.id} 
-                                                product={product} 
-                                                // onQuickLook={handleQuickLook}
-                                                // onAddToCart={handleAddToCart}
+                                            <ProductCard
+                                                key={product.id}
+                                                product={product}
+                                            // onQuickLook={handleQuickLook}
+                                            // onAddToCart={handleAddToCart}
                                             />
                                         ))}
                                     </div>
                                 </div>
-                                
+
                                 {/* Pagination */}
                                 <div className="u-s-p-y-60">
                                     <Pagination />

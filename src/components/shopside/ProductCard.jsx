@@ -101,13 +101,14 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
     setShowModal(false);
   };
 
+
   return (
     <>
       <div className="col-lg-4 col-md-6 col-sm-6">
         <div className="product-m">
           <div className="product-m__thumb">
             <Link className="aspect aspect--bg-grey aspect--square u-d-block" to={`/product-detail/${product.id}`}>
-              <img className="aspect__img" src={product.image} alt={product.name} />
+              <img className="aspect__img" src={product.imageUrl} alt={product.name} />
             </Link>
             <div className="product-m__quick-look">
               <a className="fas fa-search" onClick={onQuickLook}></a>

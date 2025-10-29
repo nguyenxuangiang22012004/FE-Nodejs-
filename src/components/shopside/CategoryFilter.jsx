@@ -24,10 +24,6 @@ const CategoryFilter = () => {
     }));
   };
 
-  useEffect(() => {    
-    console.log("✅ Categories loaded:", categories);
-  }, [categories]);
-
   return (
     <div className="shop-w shop-w--style">
       <div className="shop-w__intro-wrap">
