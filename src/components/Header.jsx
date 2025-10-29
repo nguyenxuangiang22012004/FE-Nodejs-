@@ -279,7 +279,9 @@ const Header = () => {
               <div className="ah-lg-mode">
                 <span className="ah-close">✕ Close</span>
                 <ul className="ah-list ah-list--design2 ah-list--link-color-secondary">
-                  <li><a href="shop-side-version-2.html">NEW ARRIVALS</a></li>
+                  <li>
+                    <Link to="/shopside">NEW ARRIVALS</Link>
+                  </li>
                   <li className="has-dropdown">
                     <a>PAGES<i className="fas fa-angle-down u-s-m-l-6"></i></a>
                     <span className="js-menu-toggle"></span>

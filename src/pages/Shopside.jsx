@@ -164,8 +164,8 @@ const ShopSide = () => {
                                             <ProductCard 
                                                 key={product.id} 
                                                 product={product} 
-                                                onQuickLook={handleQuickLook}
-                                                onAddToCart={handleAddToCart}
+                                                // onQuickLook={handleQuickLook}
+                                                // onAddToCart={handleAddToCart}
                                             />
                                         ))}
                                     </div>
