@@ -16,7 +16,7 @@ const OAuthCallback = () => {
           window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || "http://localhost:3000";
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
         
         const response = await axios.get(`${backendUrl}/me`, {
           withCredentials: true, 

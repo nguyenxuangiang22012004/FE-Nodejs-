@@ -66,7 +66,7 @@ export const login = async (email, password) => {
 export const loginWithGoogle = () => {
   try {
     console.log('📡 Chuyển hướng đến Google OAuth...');
-    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     window.location.href = `${backendUrl}/auth/google`;
   } catch (error) {
     console.error('💥 Error in loginWithGoogle:', error.message);
@@ -81,7 +81,7 @@ export const loginWithGoogle = () => {
 export const loginWithFacebook = () => {
   try {
     console.log('📡 Chuyển hướng đến Facebook OAuth...');
-    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     window.location.href = `${backendUrl}/auth/facebook`;
   } catch (error) {
     console.error('💥 Error in loginWithFacebook:', error.message);
