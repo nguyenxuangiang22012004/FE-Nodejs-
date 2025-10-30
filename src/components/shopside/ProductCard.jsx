@@ -7,9 +7,9 @@ const AddToCartModal = ({ isOpen, onClose, product, cartItemCount }) => {
 
   return (
     <>
-      <div 
-        className={`modal fade ${isOpen ? 'show' : ''}`} 
-        id="add-to-cart" 
+      <div
+        className={`modal fade ${isOpen ? 'show' : ''}`}
+        id="add-to-cart"
         style={{ display: isOpen ? 'block' : 'none' }}
         onClick={onClose}
       >
@@ -69,20 +69,20 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
-    
+
     for (let i = 0; i < fullStars; i++) {
       stars.push(<i key={i} className="fas fa-star"></i>);
     }
-    
+
     if (hasHalfStar) {
       stars.push(<i key="half" className="fas fa-star-half-alt"></i>);
     }
-    
+
     const emptyStars = 5 - stars.length;
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<i key={`empty-${i}`} className="far fa-star"></i>);
     }
-    
+
     return stars;
   };
 
@@ -91,7 +91,7 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
     if (onAddToCart) {
       onAddToCart(product);
     }
-    
+
     // Update cart count and show modal
     setCartCount(prev => prev + 1);
     setShowModal(true);
@@ -128,7 +128,9 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
               {renderStars(product.rating)}
               <span className="product-m__review">({product.reviews})</span>
             </div>
-            <div className="product-m__price">{product.price}</div>
+            <div className="product-m__price">
+              {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(product.price)}
+            </div>
             <div className="product-m__hover">
               <div className="product-m__preview-description">
                 <span>{product.description}</span>
@@ -141,9 +143,9 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
         </div>
       </div>
 
-      <AddToCartModal 
-        isOpen={showModal} 
-        onClose={handleCloseModal} 
+      <AddToCartModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
         product={product}
         cartItemCount={cartCount}
       />
