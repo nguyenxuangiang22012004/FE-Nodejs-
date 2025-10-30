@@ -1,56 +1,70 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Breadcrumb from '../components/Breadcrumb';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import Breadcrumb from "../components/Breadcrumb";
+import WishlistItem from "../components/wishlist/WishlistItem";
+import {
+  getWishlist,
+} from "../services/WishlistService"; // import thêm các hàm khác
 
 const Wishlist = () => {
-  const [wishlistItems, setWishlistItems] = useState([
-    {
-      id: 1,
-      name: 'Yellow Wireless Headphone',
-      category: 'Electronics',
-      image: 'images/product/electronic/product3.jpg',
-      price: 125.00,
-      originalPrice: 160.00,
-      inStock: true
-    },
-    {
-      id: 2,
-      name: 'New Dress D Nice Elegant',
-      category: 'Women Clothing',
-      image: 'images/product/women/product8.jpg',
-      price: 125.00,
-      originalPrice: 160.00,
-      inStock: true
-    },
-    {
-      id: 3,
-      name: 'New Fashion D Nice Elegant',
-      category: 'Men Clothing',
-      image: 'images/product/men/product8.jpg',
-      price: 125.00,
-      originalPrice: 160.00,
-      inStock: true
-    }
-  ]);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const breadcrumbItems = [
-    { label: 'Home', link: '/', hasSeparator: true },
-    { label: 'Wishlist', link: '/wishlist', isMarked: true }
+    { label: "Home", link: "/", hasSeparator: true },
+    { label: "Wishlist", link: "/wishlist", isMarked: true },
   ];
 
-  const handleRemoveItem = (itemId) => {
-    setWishlistItems(prevItems => prevItems.filter(item => item.id !== itemId));
+  // 🧩 Lấy danh sách wishlist khi mount
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      try {
+        const res = await getWishlist();
+      } catch (err) {
+        console.error("Failed to load wishlist:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWishlist();
+  }, []);
+
+  // 🗑️ Xóa 1 sản phẩm khỏi wishlist
+  const handleRemoveItem = async (itemId) => {
+    // try {
+    //   await removeFromWishlist(itemId);
+    //   setWishlistItems((prev) => prev.filter((item) => item.id !== itemId));
+    // } catch (err) {
+    //   console.error("Failed to remove item:", err);
+    // }
   };
 
-  const handleAddToCart = (item) => {
-    // Logic to add item to cart
-    console.log('Adding to cart:', item);
-    // You can integrate with your cart context or state management here
+  // 🛒 Thêm vào giỏ hàng
+  const handleAddToCart = async (item) => {
+    // try {
+    //   await addToCart(item.id);
+    //   console.log("Added to cart:", item);
+    // } catch (err) {
+    //   console.error("Failed to add to cart:", err);
+    // }
   };
 
-  const handleClearWishlist = () => {
-    setWishlistItems([]);
+  // ❌ Xóa toàn bộ wishlist
+  const handleClearWishlist = async () => {
+    // try {
+    //   await clearWishlist();
+    //   setWishlistItems([]);
+    // } catch (err) {
+    //   console.error("Failed to clear wishlist:", err);
+    // }
   };
+
+  if (loading)
+    return (
+      <div className="u-s-p-y-100 text-center">
+        <h3>Loading your wishlist...</h3>
+      </div>
+    );
 
   return (
     <div className="wishlist-page">
@@ -88,23 +102,27 @@ const Wishlist = () => {
                     <div className="empty-wishlist__icon">
                       <i className="far fa-heart"></i>
                     </div>
-                    <h3 className="empty-wishlist__title">Your wishlist is empty</h3>
-                    <p className="empty-wishlist__text">Start adding items you love to your wishlist!</p>
+                    <h3 className="empty-wishlist__title">
+                      Your wishlist is empty
+                    </h3>
+                    <p className="empty-wishlist__text">
+                      Start adding items you love to your wishlist!
+                    </p>
                     <Link to="/shop" className="btn btn--e-brand">
                       Start Shopping
                     </Link>
                   </div>
                 ) : (
                   <>
-                    {wishlistItems.map(item => (
-                      <WishlistItem 
+                    {wishlistItems.map((item) => (
+                      <WishlistItem
                         key={item.id}
                         item={item}
-                        onRemove={handleRemoveItem}
-                        onAddToCart={handleAddToCart}
+                        // onRemove={handleRemoveItem}
+                        // onAddToCart={handleAddToCart}
                       />
                     ))}
-                    
+
                     <div className="col-lg-12">
                       <div className="route-box">
                         <div className="route-box__g">
@@ -114,8 +132,8 @@ const Wishlist = () => {
                           </Link>
                         </div>
                         <div className="route-box__g">
-                          <button 
-                            className="route-box__link" 
+                          <button
+                            className="route-box__link"
                             onClick={handleClearWishlist}
                           >
                             <i className="fas fa-trash"></i>
@@ -135,51 +153,6 @@ const Wishlist = () => {
   );
 };
 
-// Wishlist Item Component
-const WishlistItem = ({ item, onRemove, onAddToCart }) => {
-  return (
-    <div className="w-r u-s-m-b-30">
-      <div className="w-r__container">
-        <div className="w-r__wrap-1">
-          <div className="w-r__img-wrap">
-            <img className="u-img-fluid" src={item.image} alt={item.name} />
-          </div>
-          <div className="w-r__info">
-            <span className="w-r__name">
-              <Link to={`/product/${item.id}`}>{item.name}</Link>
-            </span>
-            <span className="w-r__category">
-              <Link to={`/shop?category=${item.category}`}>{item.category}</Link>
-            </span>
-            <span className="w-r__price">
-              ${item.price.toFixed(2)}
-              <span className="w-r__discount">${item.originalPrice.toFixed(2)}</span>
-            </span>
-          </div>
-        </div>
-        <div className="w-r__wrap-2">
-          <button 
-            className="w-r__link btn--e-brand-b-2"
-            onClick={() => onAddToCart(item)}
-          >
-            ADD TO CART
-          </button>
-          <Link 
-            className="w-r__link btn--e-transparent-platinum-b-2" 
-            to={`/product/${item.id}`}
-          >
-            VIEW
-          </Link>
-          <button 
-            className="w-r__link btn--e-transparent-platinum-b-2"
-            onClick={() => onRemove(item.id)}
-          >
-            REMOVE
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+
 
 export default Wishlist;

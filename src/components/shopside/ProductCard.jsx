@@ -1,70 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { addToWishlist } from "../../services/WishlistService";
+import AddToCartModal from '../modal/AddToCartModal';
 
-// Modal Component
-const AddToCartModal = ({ isOpen, onClose, product, cartItemCount }) => {
-  if (!isOpen || !product) return null;
-
-  return (
-    <>
-      <div
-        className={`modal fade ${isOpen ? 'show' : ''}`}
-        id="add-to-cart"
-        style={{ display: isOpen ? 'block' : 'none' }}
-        onClick={onClose}
-      >
-        <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-content modal-radius modal-shadow">
-            <button className="btn dismiss-button fas fa-times" type="button" onClick={onClose}></button>
-            <div className="modal-body">
-              <div className="row">
-                <div className="col-lg-6 col-md-12">
-                  <div className="success u-s-m-b-30">
-                    <div className="success__text-wrap">
-                      <i className="fas fa-check"></i>
-                      <span>Item is added successfully!</span>
-                    </div>
-                    <div className="success__img-wrap">
-                      <img className="u-img-fluid" src={product.image} alt={product.name} />
-                    </div>
-                    <div className="success__info-wrap">
-                      <span className="success__name">{product.name}</span>
-                      <span className="success__quantity">Quantity: 1</span>
-                      <span className="success__price">{product.price}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-12">
-                  <div className="s-option">
-                    <span className="s-option__text">{cartItemCount} item(s) in your cart</span>
-                    <div className="s-option__link-box">
-                      <a className="s-option__link btn--e-white-brand-shadow" onClick={onClose}>
-                        CONTINUE SHOPPING
-                      </a>
-                      <Link className="s-option__link btn--e-white-brand-shadow" to="/cart">
-                        VIEW CART
-                      </Link>
-                      <Link className="s-option__link btn--e-brand-shadow" to="/checkout">
-                        PROCEED TO CHECKOUT
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {isOpen && <div className="modal-backdrop fade show"></div>}
-    </>
-  );
-};
-
-// Updated ProductCard Component
 const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
   const [showModal, setShowModal] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-
+  const [isInWishlist, setIsInWishlist] = useState(false);
   const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -99,6 +41,20 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
 
   const handleCloseModal = () => {
     setShowModal(false);
+  };
+
+  const handleToggleWishlist = async () => {
+    try {
+      if (isInWishlist) {
+        await removeFromWishlist(product.id);
+        setIsInWishlist(false);
+      } else {
+        await addToWishlist(product.id);
+        setIsInWishlist(true);
+      }
+    } catch (error) {
+      console.error("Wishlist action failed:", error);
+    }
   };
 
 
@@ -136,7 +92,12 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
                 <span>{product.description}</span>
               </div>
               <div className="product-m__wishlist">
-                <a className="far fa-heart" href="#"></a>
+                <a
+                  onClick={handleToggleWishlist}
+                  style={{ cursor: "pointer", color: isInWishlist ? "red" : "#888" }}
+                >
+                  <i className={isInWishlist ? "fas fa-heart" : "far fa-heart"}></i>
+                </a>
               </div>
             </div>
           </div>
@@ -147,8 +108,11 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
         isOpen={showModal}
         onClose={handleCloseModal}
         product={product}
-        cartItemCount={cartCount}
+        onConfirmAddToCart={(cartItem) => {
+          console.log(cartItem);
+        }}
       />
+
     </>
   );
 };

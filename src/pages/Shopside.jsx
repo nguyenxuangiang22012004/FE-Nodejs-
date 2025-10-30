@@ -33,6 +33,7 @@ const ShopSide = () => {
                     offset,
                 };
                 const res = await getAllProducts(filters);
+                console.log(res);
                 setProducts(res.data || []);
                 setTotal(res.pagination.total || 0);
             } catch (error) {
@@ -152,7 +153,7 @@ const ShopSide = () => {
                                                         value={limit}
                                                         onChange={handleLimitChange}
                                                     >
-                                                        <option value="8">Show: 8</option>
+                                                        <option value="9">Show: 9</option>
                                                         <option value="12">Show: 12</option>
                                                         <option value="16">Show: 16</option>
                                                         <option value="28">Show: 28</option>

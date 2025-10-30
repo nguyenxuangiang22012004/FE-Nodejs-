@@ -342,7 +342,11 @@ const Header = () => {
                 <span className="ah-close">✕ Close</span>
                 <ul className="ah-list ah-list--design1 ah-list--link-color-secondary">
                   <li><a href="index.html"><i className="fas fa-home u-c-brand"></i></a></li>
-                  <li><a href="wishlist.html"><i className="far fa-heart"></i></a></li>
+                  <li>
+                    <Link to="/wishlist">
+                      <i className="far fa-heart"></i>
+                    </Link>
+                  </li>
                   <li className="has-dropdown">
                     <a className="mini-cart-shop-link">
                       <i className="fas fa-shopping-bag"></i>
