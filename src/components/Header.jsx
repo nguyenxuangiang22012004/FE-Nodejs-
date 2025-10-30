@@ -5,6 +5,9 @@ const Header = () => {
 
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+
   useEffect(() => {
     const safeParseUser = () => {
       try {
@@ -33,6 +36,13 @@ const Header = () => {
     navigate('/login');
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim() !== "") {
+      navigate(`/shopside?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
   return (
     <header className="header--style-1">
       {/* Nav 1 */}
@@ -45,15 +55,19 @@ const Header = () => {
             </a>
 
             {/* Search Form */}
-            <form className="main-form">
-              <label htmlFor="main-search"></label>
+            <form className="main-form" onSubmit={handleSearch}>
               <input
                 className="input-text input-text--border-radius input-text--style-1"
                 type="text"
                 id="main-search"
-                placeholder="Search"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <button className="btn btn--icon fas fa-search main-search-button" type="submit"></button>
+              <button
+                className="btn btn--icon fas fa-search main-search-button"
+                type="submit"
+              ></button>
             </form>
 
             {/* Dropdown Main plugin */}

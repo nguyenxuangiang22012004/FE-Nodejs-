@@ -18,7 +18,7 @@ const ShopSide = () => {
     const [total, setTotal] = useState(0);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-
+    const search = searchParams.get("search") || "";
     const limit = parseInt(searchParams.get("limit")) || 12;
     const offset = parseInt(searchParams.get("offset")) || 0;
     const currentPage = Math.floor(offset / limit) + 1;
@@ -27,7 +27,7 @@ const ShopSide = () => {
         const fetchProducts = async () => {
             try {
                 const filters = {
-                    q: searchParams.get("q") || "",
+                    q : search || "",
                     subcategoryId: searchParams.get("id") || "",
                     limit,
                     offset,
@@ -35,7 +35,6 @@ const ShopSide = () => {
                 const res = await getAllProducts(filters);
                 setProducts(res.data || []);
                 setTotal(res.pagination.total || 0);
-                setTotalPages(res.pagination.totalPages || 0);
             } catch (error) {
                 console.error("Lỗi khi lấy sản phẩm:", error);
             } finally {
