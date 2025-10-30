@@ -388,15 +388,22 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
           gap: 12px;
         }
 
-        .color-item {
-          width: 52px;
-          height: 52px;
-          border-radius: 50%;
-          cursor: pointer;
-          position: relative;
-          transition: all 0.2s;
-          border: 3px solid transparent;
-        }
+       .color-item {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  border: 3px solid transparent;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15); /* viền nhẹ cho màu sáng */
+}
+
+/* Riêng màu trắng thì viền đậm hơn để nổi bật */
+.color-item[title="Trắng"],
+.color-item[title="White"] {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
 
         .color-item:hover {
           transform: scale(1.1);
