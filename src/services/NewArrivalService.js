@@ -37,7 +37,7 @@ export const getAllProducts = async (filters = {}) => {
       throw new Error("Invalid response format from server");
     }
 
-    return response.data.data; // Trả về danh sách sản phẩm
+    return response.data; // Trả về danh sách sản phẩm
   } catch (error) {
     console.error("❌ Error fetching products:", error);
     throw error;

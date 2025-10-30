@@ -12,29 +12,30 @@ import ShippingFilter from '../components/shopside/ShippingFilter';
 import SizeFilter from "../components/shopside/SizeFilter";
 import { getAllProducts } from "../services/NewArrivalService";
 const ShopSide = () => {
-    const [isGridActive, setIsGridActive] = useState(true);
+    const[isGridActive, setIsGridActive] = useState(true);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-
+    const [total, setTotal] = useState(0);
     const navigate = useNavigate();
-
     const [searchParams] = useSearchParams();
-    const selectedLimit = parseInt(searchParams.get("limit")) || 12;
 
+    const limit = parseInt(searchParams.get("limit")) || 12;
+    const offset = parseInt(searchParams.get("offset")) || 0;
+    const currentPage = Math.floor(offset / limit) + 1;
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-
                 const filters = {
                     q: searchParams.get("q") || "",
                     subcategoryId: searchParams.get("id") || "",
-                    limit: parseInt(searchParams.get("limit")) || 12,
-                    offset: parseInt(searchParams.get("offset")) || 0,
+                    limit,
+                    offset,
                 };
-
-                const data = await getAllProducts(filters);
-                setProducts(data || []); // tùy API trả về
+                const res = await getAllProducts(filters);
+                setProducts(res.data || []);
+                setTotal(res.pagination.total || 0);
+                setTotalPages(res.pagination.totalPages || 0);
             } catch (error) {
                 console.error("Lỗi khi lấy sản phẩm:", error);
             } finally {
@@ -45,27 +46,20 @@ const ShopSide = () => {
         fetchProducts();
     }, [searchParams]);
 
-
-    const handleQuickLook = () => {
-        setShowQuickLook(true);
-    };
-
-    const handleAddToCart = () => {
-        setShowAddToCart(true);
-    };
-
-    const closeModals = () => {
-        setShowQuickLook(false);
-        setShowAddToCart(false);
-    };
     const handleLimitChange = (e) => {
         const newLimit = parseInt(e.target.value);
         const newParams = new URLSearchParams(searchParams);
         newParams.set("limit", newLimit);
-        newParams.set("offset", 0); // reset trang
+        newParams.set("offset", 0);
         navigate(`?${newParams.toString()}`);
     };
 
+    const handlePageChange = (page) => {
+        const newOffset = (page - 1) * limit;
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set("offset", newOffset);
+        navigate(`?${newParams.toString()}`);
+    };
 
 
     return (
@@ -156,7 +150,7 @@ const ShopSide = () => {
                                                 <div className="u-s-m-b-8">
                                                     <select
                                                         className="select-box select-box--transparent-b-2"
-                                                        value={selectedLimit}
+                                                        value={limit}
                                                         onChange={handleLimitChange}
                                                     >
                                                         <option value="8">Show: 8</option>
@@ -195,7 +189,12 @@ const ShopSide = () => {
 
                                 {/* Pagination */}
                                 <div className="u-s-p-y-60">
-                                    <Pagination />
+                                    <Pagination
+                                        total={total}
+                                        limit={limit}
+                                        currentPage={currentPage}
+                                        onPageChange={handlePageChange}
+                                    />
                                 </div>
                             </div>
                         </div>
