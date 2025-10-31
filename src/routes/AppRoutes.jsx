@@ -42,7 +42,7 @@ function AppRoutes() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/shopside" element={<ShopSide />} />
-          <Route path="/product-detail/:productId" element={<ProductDetail />} />
+          <Route path="/product-detail/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/empty-cart" element={<EmptyCart />} />

@@ -1,19 +1,16 @@
 import React from 'react';
 
 const ProductInfo = ({ product = {}, quantity, onQuantityChange, onAddToCart }) => {
-  // Nếu product không tồn tại, cung cấp giá trị mặc định
-  const { name = 'Product Name', price = 0, discount = 0, originalPrice = 0, reviews = 0, stock = 0, left = 0, description = '', wishlistCount = 0, priceDropCount = 0 } = product;
-
   return (
     <div className="pd-detail">
       <div>
-        <span className="pd-detail__name">{name}</span>
+        <span className="pd-detail__name">{product.name}</span>
       </div>
       <div>
         <div className="pd-detail__inline">
-          <span className="pd-detail__price">${price}</span>
-          <span className="pd-detail__discount">({discount}% OFF)</span>
-          <del className="pd-detail__del">${originalPrice}</del>
+          <span className="pd-detail__price">${product.price}</span>
+          <span className="pd-detail__discount">({product.discountedPrice}% OFF)</span>
+          <del className="pd-detail__del">${product.originalPrice}</del>
         </div>
       </div>
       <div className="u-s-m-b-15">
@@ -24,19 +21,19 @@ const ProductInfo = ({ product = {}, quantity, onQuantityChange, onAddToCart }) 
           <i className="fas fa-star"></i>
           <i className="fas fa-star-half-alt"></i>
           <span className="pd-detail__review u-s-m-l-4">
-            <a data-click-scroll="#view-review">{reviews} Reviews</a>
+            <a data-click-scroll="#view-review">{product.reviews} Reviews</a>
           </span>
         </div>
       </div>
       <div className="u-s-m-b-15">
         <div className="pd-detail__inline">
-          <span className="pd-detail__stock">{stock} in stock</span>
-          <span className="pd-detail__left">Only {left} left</span>
+          <span className="pd-detail__stock">{product.stockQuantity} in stock</span>
+          <span className="pd-detail__left">Only {product.left} left</span>
         </div>
       </div>
       <div className="u-s-m-b-15">
         <span className="pd-detail__preview-desc">
-          {description}
+          {product.escription}
         </span>
       </div>
       <div className="u-s-m-b-15">
@@ -44,7 +41,7 @@ const ProductInfo = ({ product = {}, quantity, onQuantityChange, onAddToCart }) 
           <span className="pd-detail__click-wrap">
             <i className="far fa-heart u-s-m-r-6"></i>
             <a href="signin.html">Add to Wishlist</a>
-            <span className="pd-detail__click-count">({wishlistCount})</span>
+            <span className="pd-detail__click-count">({product.wishlistCount})</span>
           </span>
         </div>
       </div>
@@ -53,7 +50,7 @@ const ProductInfo = ({ product = {}, quantity, onQuantityChange, onAddToCart }) 
           <span className="pd-detail__click-wrap">
             <i className="far fa-envelope u-s-m-r-6"></i>
             <a href="signin.html">Email me When the price drops</a>
-            <span className="pd-detail__click-count">({priceDropCount})</span>
+            <span className="pd-detail__click-count">({product.priceDropCount})</span>
           </span>
         </div>
       </div>

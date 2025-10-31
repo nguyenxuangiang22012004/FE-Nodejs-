@@ -33,7 +33,6 @@ const ShopSide = () => {
                     offset,
                 };
                 const res = await getAllProducts(filters);
-                console.log(res);
                 setProducts(res.data || []);
                 setTotal(res.pagination.total || 0);
             } catch (error) {

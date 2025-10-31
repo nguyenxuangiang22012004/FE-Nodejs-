@@ -1,220 +1,262 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { colorMap } from '../../constant/colorMap';
+import { addToCart } from '../../services/CartService';
+import { getProductDetail } from '../../services/NewArrivalService';
 const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
-    const [selectedSize, setSelectedSize] = useState('');
-    const [selectedColor, setSelectedColor] = useState('');
-    const [quantity, setQuantity] = useState(1);
-    const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [productDetail, setProductDetail] = useState(null);
 
-    if (!isOpen || !product) return null;
-    console.log("🛒 AddToCartModal - product:", product);
-    const sizes = product.sizes || ['S', 'M', 'L', 'XL', 'XXL'];
-    const colors =
-        (product.colors && product.colors.length > 0)
-            ? product.colors.map(c => ({
-                name: c,
-                value: colorMap[c] || '#ccc'
-            }))
-            : [
-                { name: 'Black', value: '#000000' },
-                { name: 'White', value: '#FFFFFF' },
-                { name: 'Red', value: '#FF0000' },
-                { name: 'Blue', value: '#0000FF' },
-                { name: 'Navy', value: '#001f3f' }
-            ];
-
-    const handleConfirm = () => {
-        if (!selectedSize || !selectedColor) {
-            alert('Please select size and color!');
-            return;
+  useEffect(() => {
+    const fetchProductDetail = async () => {
+      if (isOpen && product?.id) {
+        try {
+          const res = await getProductDetail(product.id);
+          setProductDetail(res.data || res);
+        } catch (error) {
+          console.error("❌ Lỗi khi lấy chi tiết sản phẩm:", error);
         }
+      }
+    };
+    fetchProductDetail();
+  }, [isOpen, product?.id]);
 
+  if (!isOpen || !product) return null;
+  const sizes = product.sizes || ['S', 'M', 'L', 'XL', 'XXL'];
+  const colors =
+    (product.colors && product.colors.length > 0)
+      ? product.colors.map(c => ({
+        name: c,
+        value: colorMap[c] || '#ccc'
+      }))
+      : [
+        { name: 'Black', value: '#000000' },
+        { name: 'White', value: '#FFFFFF' },
+        { name: 'Red', value: '#FF0000' },
+        { name: 'Blue', value: '#0000FF' },
+        { name: 'Navy', value: '#001f3f' }
+      ];
+
+  const handleConfirm = async () => {
+    if (!selectedSize || !selectedColor) {
+      alert('Please select size and color!');
+      return;
+    }
+
+    // Tìm variant khớp với size và color được chọn
+    const selectedVariant = productDetail?.productVariants?.find(
+      (variant) =>
+        variant.size.toLowerCase() === selectedSize.toLowerCase() &&
+        variant.color.toLowerCase() === selectedColor.toLowerCase()
+    );
+
+    if (!selectedVariant) {
+      alert('Không tìm thấy biến thể phù hợp!');
+      return;
+    }
+
+    const variantId = selectedVariant.id;
+    console.log("🧩 Variant được chọn:", selectedVariant);
+
+    try {
+      const res = await addToCart(variantId, quantity);
+      setShowSuccess(true);
+
+      if (onConfirmAddToCart) {
         const cartItem = {
-            ...product,
-            selectedSize,
-            selectedColor,
-            quantity
+          ...product,
+          selectedSize,
+          selectedColor,
+          quantity,
+          variantId
         };
-        if (onConfirmAddToCart) {
-            onConfirmAddToCart(cartItem);
-        }
-        setShowSuccess(true);
-    };
+        onConfirmAddToCart(cartItem);
+      }
+    } catch (error) {
+      console.error("❌ Add to cart failed:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "Thêm vào giỏ hàng thất bại!");
+    }
+  };
 
-    const handleClose = () => {
-        setShowSuccess(false);
-        setSelectedSize('');
-        setSelectedColor('');
-        setQuantity(1);
-        onClose();
-    };
 
-    const handleQuantityChange = (type) => {
-        if (type === 'increase') {
-            setQuantity(prev => prev + 1);
-        } else if (type === 'decrease' && quantity > 1) {
-            setQuantity(prev => prev - 1);
-        }
-    };
+  const handleClose = () => {
+    setShowSuccess(false);
+    setSelectedSize('');
+    setSelectedColor('');
+    setQuantity(1);
+    onClose();
+  };
 
-    return (
-        <>
-            <div className="variant-modal-overlay" onClick={handleClose}>
-                <div className="variant-modal-container" onClick={(e) => e.stopPropagation()}>
-                    <button className="variant-modal-close" onClick={handleClose}>
-                        ✕
-                    </button>
+  const handleQuantityChange = (type) => {
+    if (type === 'increase') {
+      setQuantity(prev => prev + 1);
+    } else if (type === 'decrease' && quantity > 1) {
+      setQuantity(prev => prev - 1);
+    }
+  };
 
-                    {!showSuccess ? (
-                        <div className="variant-modal-body">
-                            <div className="variant-modal-image">
-                                <img
-                                    src={product.imageUrl || product.image}
-                                    alt={product.name}
-                                />
-                            </div>
+  return (
+    <>
+      <div className="variant-modal-overlay" onClick={handleClose}>
+        <div className="variant-modal-container" onClick={(e) => e.stopPropagation()}>
+          <button className="variant-modal-close" onClick={handleClose}>
+            ✕
+          </button>
 
-                            <div className="variant-modal-content">
-                                <h2 className="variant-product-title">{product.name}</h2>
-                                <div className="variant-product-price">
-                                    {new Intl.NumberFormat("vi-VN", {
-                                        style: "currency",
-                                        currency: "VND"
-                                    }).format(product.price)}
-                                </div>
+          {!showSuccess ? (
+            <div className="variant-modal-body">
+              <div className="variant-modal-image">
+                <img
+                  src={product.imageUrl || product.image}
+                  alt={product.name}
+                />
+              </div>
 
-                                <div className="variant-section">
-                                    <div className="variant-label">
-                                        Size
-                                        {selectedSize && <span className="variant-selected">{selectedSize}</span>}
-                                    </div>
-                                    <div className="size-options">
-                                        {sizes.map((size) => (
-                                            <button
-                                                key={size}
-                                                className={`size-btn ${selectedSize === size ? 'selected' : ''}`}
-                                                onClick={() => setSelectedSize(size)}
-                                            >
-                                                {size}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="variant-section">
-                                    <div className="variant-label">
-                                        Color
-                                        {selectedColor && <span className="variant-selected">{selectedColor}</span>}
-                                    </div>
-                                    <div className="color-options">
-                                        {colors.map((color) => (
-                                            <div
-                                                key={color.name}
-                                                className={`color-item ${selectedColor === color.name ? 'selected' : ''}`}
-                                                onClick={() => setSelectedColor(color.name)}
-                                                style={{ backgroundColor: color.value }}
-                                                title={color.name}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="variant-section">
-                                    <div className="variant-label">Quantity</div>
-                                    <div className="quantity-selector">
-                                        <button
-                                            className="quantity-btn"
-                                            onClick={() => handleQuantityChange('decrease')}
-                                        >
-                                            −
-                                        </button>
-                                        <div className="quantity-display">{quantity}</div>
-                                        <button
-                                            className="quantity-btn"
-                                            onClick={() => handleQuantityChange('increase')}
-                                        >
-                                            +
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="action-buttons">
-                                    <button className="btn-cancel" onClick={handleClose}>
-                                        Cancel
-                                    </button>
-                                    <button className="btn-add" onClick={handleConfirm}>
-                                        Add to Cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="success-container">
-                            <div className="success-icon">
-                                <i className="fas fa-check"></i>
-                            </div>
-                            <h2 className="success-title">Added to Cart!</h2>
-
-                            <img
-                                className="success-product-img"
-                                src={product.imageUrl || product.image}
-                                alt={product.name}
-                            />
-
-                            <div className="success-details">
-                                <div className="success-detail-row">
-                                    <span className="success-detail-label">Product:</span>
-                                    <span className="success-detail-value">{product.name}</span>
-                                </div>
-                                <div className="success-detail-row">
-                                    <span className="success-detail-label">Size:</span>
-                                    <span className="success-detail-value">{selectedSize}</span>
-                                </div>
-                                <div className="success-detail-row">
-                                    <span className="success-detail-label">Color:</span>
-                                    <span className="success-detail-value">{selectedColor}</span>
-                                </div>
-                                <div className="success-detail-row">
-                                    <span className="success-detail-label">Quantity:</span>
-                                    <span className="success-detail-value">{quantity}</span>
-                                </div>
-                                <div className="success-detail-row" style={{ paddingTop: '12px', borderTop: '1px solid #dee2e6', marginTop: '8px' }}>
-                                    <span className="success-detail-label">Total:</span>
-                                    <span className="success-detail-value" style={{ color: '#e74c3c', fontSize: '18px' }}>
-                                        {new Intl.NumberFormat("vi-VN", {
-                                            style: "currency",
-                                            currency: "VND"
-                                        }).format(product.price * quantity)}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="success-actions">
-                                <button className="success-btn success-btn-continue" onClick={handleClose}>
-                                    Continue Shopping
-                                </button>
-                                <Link
-                                    to="/cart"
-                                    className="success-btn success-btn-cart"
-                                    onClick={handleClose}
-                                >
-                                    View Cart
-                                </Link>
-                                <Link
-                                    to="/checkout"
-                                    className="success-btn success-btn-checkout"
-                                    onClick={handleClose}
-                                >
-                                    Checkout
-                                </Link>
-                            </div>
-                        </div>
-                    )}
+              <div className="variant-modal-content">
+                <h2 className="variant-product-title">{product.name}</h2>
+                <div className="variant-product-price">
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND"
+                  }).format(product.price)}
                 </div>
-            </div>
 
-            <style>{`
+                <div className="variant-section">
+                  <div className="variant-label">
+                    Size
+                    {selectedSize && <span className="variant-selected">{selectedSize}</span>}
+                  </div>
+                  <div className="size-options">
+                    {sizes.map((size) => (
+                      <button
+                        key={size}
+                        className={`size-btn ${selectedSize === size ? 'selected' : ''}`}
+                        onClick={() => setSelectedSize(size)}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="variant-section">
+                  <div className="variant-label">
+                    Color
+                    {selectedColor && <span className="variant-selected">{selectedColor}</span>}
+                  </div>
+                  <div className="color-options">
+                    {colors.map((color) => (
+                      <div
+                        key={color.name}
+                        className={`color-item ${selectedColor === color.name ? 'selected' : ''}`}
+                        onClick={() => setSelectedColor(color.name)}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="variant-section">
+                  <div className="variant-label">Quantity</div>
+                  <div className="quantity-selector">
+                    <button
+                      className="quantity-btn"
+                      onClick={() => handleQuantityChange('decrease')}
+                    >
+                      −
+                    </button>
+                    <div className="quantity-display">{quantity}</div>
+                    <button
+                      className="quantity-btn"
+                      onClick={() => handleQuantityChange('increase')}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="action-buttons">
+                  <button className="btn-cancel" onClick={handleClose}>
+                    Cancel
+                  </button>
+                  <button className="btn-add" onClick={handleConfirm}>
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="success-container">
+              <div className="success-icon">
+                <i className="fas fa-check"></i>
+              </div>
+              <h2 className="success-title" >
+                Added to Cart!
+              </h2>
+
+              {/* <img
+                className="success-product-img"
+                src={product.imageUrl || product.image}
+                alt={product.name}
+              /> */}
+
+              <div className="success-details" style={{ height : "225px" }}>
+                <div className="success-detail-row">
+                  <span className="success-detail-label">Product:</span>
+                  <span className="success-detail-value">{product.name}</span>
+                </div>
+                <div className="success-detail-row">
+                  <span className="success-detail-label">Size:</span>
+                  <span className="success-detail-value">{selectedSize}</span>
+                </div>
+                <div className="success-detail-row">
+                  <span className="success-detail-label">Color:</span>
+                  <span className="success-detail-value">{selectedColor}</span>
+                </div>
+                <div className="success-detail-row">
+                  <span className="success-detail-label">Quantity:</span>
+                  <span className="success-detail-value">{quantity}</span>
+                </div>
+                <div className="success-detail-row" style={{ paddingTop: '12px', borderTop: '1px solid #dee2e6', marginTop: '8px' }}>
+                  <span className="success-detail-label">Total:</span>
+                  <span className="success-detail-value" style={{ color: '#e74c3c', fontSize: '18px' }}>
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND"
+                    }).format(product.price * quantity)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="success-actions">
+                <button className="success-btn success-btn-continue" onClick={handleClose}>
+                  Continue Shopping
+                </button>
+                <Link
+                  to="/cart"
+                  className="success-btn success-btn-cart"
+                  onClick={handleClose}
+                >
+                  View Cart
+                </Link>
+                <Link
+                  to="/checkout"
+                  className="success-btn success-btn-checkout"
+                  onClick={handleClose}
+                >
+                  Checkout
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style>{`
         .variant-modal-overlay {
           position: fixed;
           top: 0;
@@ -667,8 +709,8 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
           }
         }
       `}</style>
-        </>
-    );
+    </>
+  );
 };
 
 export default AddToCartModal;

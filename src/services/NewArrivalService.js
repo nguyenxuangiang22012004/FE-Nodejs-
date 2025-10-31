@@ -43,3 +43,11 @@ export const getAllProducts = async (filters = {}) => {
     throw error;
   }
 };
+
+
+export const getProductDetail = async (id) => {
+  const res =  await api.get(`/new-arrivals/products/${id}`);
+  if(res.success){
+    return res;
+  }
+};

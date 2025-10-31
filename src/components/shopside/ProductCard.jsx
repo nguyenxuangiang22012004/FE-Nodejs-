@@ -29,12 +29,9 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
   };
 
   const handleAddToCart = () => {
-    // Call parent's onAddToCart if provided
     if (onAddToCart) {
       onAddToCart(product);
     }
-
-    // Update cart count and show modal
     setCartCount(prev => prev + 1);
     setShowModal(true);
   };
@@ -70,7 +67,7 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
               <a className="fas fa-search" onClick={onQuickLook}></a>
             </div>
             <div className="product-m__add-cart">
-              <a className="btn--e-brand" onClick={handleAddToCart}>Add to Cart</a>
+              <a className="btn--e-brand"  onClick={handleAddToCart} >Add to Cart</a>
             </div>
           </div>
           <div className="product-m__content">
@@ -78,7 +75,7 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
               <Link to="/shop-side-version-2">{product.category}</Link>
             </div>
             <div className="product-m__name">
-              <Link to="/product-detail">{product.name}</Link>
+              <Link to={`/product-detail/${product.id}`}>{product.name}</Link>
             </div>
             <div className="product-m__rating gl-rating-style">
               {renderStars(product.rating)}
