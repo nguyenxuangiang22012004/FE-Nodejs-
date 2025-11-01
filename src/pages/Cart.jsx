@@ -4,9 +4,9 @@ import CartItems from '../components/cart/CartItems';
 import CartSummary from '../components/cart/CartSummary';
 import ShippingCalculator from '../components/cart/ShippingCalculator';
 import CartNote from '../components/cart/CartNote';
-import { getCart ,updateCart } from '../services/CartService';
-import {getProductDetail} from '../services/NewArrivalService';
-
+import { getCart, updateCart, deleteCartItem } from '../services/CartService';
+import { getProductDetail } from '../services/NewArrivalService';
+import Swal from 'sweetalert2';
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [shippingInfo, setShippingInfo] = useState({ country: '', state: '', zip: '' });
@@ -20,7 +20,7 @@ const Cart = () => {
         console.log('Cart API response:', res);
 
         const items = Array.isArray(res?.cartDetails) ? res.cartDetails : [];
-        
+
         const mappedItems = items.map(item => ({
           id: item.id,
           idProduct: item.productVariant?.productId || null,
@@ -39,7 +39,7 @@ const Cart = () => {
             try {
               const productRes = await getProductDetail(item.idProduct);
               const productName =
-                productRes?.data?.name ||'Unnamed Product';
+                productRes?.data?.name || 'Unnamed Product';
 
               return { ...item, productName };
             } catch (err) {
@@ -72,21 +72,44 @@ const Cart = () => {
     );
   };
 
-  const handleRemoveItem = id => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+  const handleRemoveItem = async (id) => {
+    const itemToRemove = cartItems.find(item => item.id === id);
+    if (!itemToRemove) return;
+
+    const result = await Swal.fire({
+      title: 'Xác nhận xóa?',
+      text: `Bạn có chắc muốn xóa "${itemToRemove.productName}" khỏi giỏ hàng?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await deleteCartItem(itemToRemove.productVariantId);
+      setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+      Swal.fire('Đã xóa!', 'Sản phẩm đã được xóa khỏi giỏ hàng.', 'success');
+    } catch (error) {
+      console.error('Failed to delete item from cart:', error);
+      Swal.fire('Lỗi', 'Xóa sản phẩm thất bại. Vui lòng thử lại.', 'error');
+    }
   };
 
   const handleClearCart = () => setCartItems([]);
   const handleUpdateCart = async () => {
-  try {
-    const res = await updateCart(cartItems);
-    console.log('Cart updated successfully:', res);
-    alert('Cart updated successfully!');
-  } catch (error) {
-    console.error('Failed to update cart:', error);
-    alert('Failed to update cart.');
-  }
-};
+    try {
+      const res = await updateCart(cartItems);
+      console.log('Cart updated successfully:', res);
+      alert('Cart updated successfully!');
+    } catch (error) {
+      console.error('Failed to update cart:', error);
+      alert('Failed to update cart.');
+    }
+  };
   const handleShippingInfoChange = (field, value) =>
     setShippingInfo(prev => ({ ...prev, [field]: value }));
   const handleCalculateShipping = () =>
