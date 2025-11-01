@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 import { colorMap } from '../../constant/colorMap';
 import { addToCart } from '../../services/CartService';
 import { getProductDetail } from '../../services/NewArrivalService';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [productDetail, setProductDetail] = useState(null);
-
+  const MySwal = withReactContent(Swal);
   useEffect(() => {
     const fetchProductDetail = async () => {
       if (isOpen && product?.id) {
@@ -42,44 +44,85 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
 
   const handleConfirm = async () => {
     if (!selectedSize || !selectedColor) {
-      alert('Please select size and color!');
+      MySwal.fire({
+        icon: 'warning',
+        title: 'Chọn thiếu!',
+        text: 'Vui lòng chọn đầy đủ size và màu trước khi thêm vào giỏ hàng.',
+        timer: 1500,
+      });
       return;
     }
 
-    // Tìm variant khớp với size và color được chọn
+    // tìm variant phù hợp
     const selectedVariant = productDetail?.productVariants?.find(
-      (variant) =>
-        variant.size.toLowerCase() === selectedSize.toLowerCase() &&
-        variant.color.toLowerCase() === selectedColor.toLowerCase()
+      (v) =>
+        v.size?.toLowerCase() === selectedSize.toLowerCase() &&
+        v.color?.toLowerCase() === selectedColor.toLowerCase()
     );
 
     if (!selectedVariant) {
-      alert('Không tìm thấy biến thể phù hợp!');
+      MySwal.fire({
+        icon: 'error',
+        title: 'Không tìm thấy biến thể!',
+        text: 'Vui lòng chọn lại màu và size khác.',
+      });
       return;
     }
 
     const variantId = selectedVariant.id;
-    console.log("🧩 Variant được chọn:", selectedVariant);
 
     try {
       const res = await addToCart(variantId, quantity);
-      setShowSuccess(true);
+      console.log(res);
+      if (res.success) {
+        MySwal.fire({
+          icon: 'success',
+          title: 'Đã thêm vào giỏ hàng!',
+          html: `
+            <div style="text-align:left; font-size:15px; margin-top:10px">
+              <b>Sản phẩm:</b> ${product.name}<br/>
+              <b>Màu sắc:</b> ${selectedColor}<br/>
+              <b>Kích cỡ:</b> ${selectedSize}<br/>
+              <b>Số lượng:</b> ${quantity}<br/>
+              <b>Tổng cộng:</b> ${new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+          }).format(product.price * quantity)}
+            </div>
+          `,
+          showConfirmButton: false,
+          timer: 1800,
+        });
 
-      if (onConfirmAddToCart) {
-        const cartItem = {
-          ...product,
-          selectedSize,
-          selectedColor,
-          quantity,
-          variantId
-        };
-        onConfirmAddToCart(cartItem);
+        if (onConfirmAddToCart) {
+          const cartItem = {
+            ...product,
+            selectedSize,
+            selectedColor,
+            quantity,
+            variantId,
+          };
+          onConfirmAddToCart(cartItem);
+        }
+
+        onClose();
+      } else {
+        MySwal.fire({
+          icon: 'error',
+          title: 'Thêm thất bại!',
+          text: res.message || 'Vui lòng thử lại.',
+        });
       }
     } catch (error) {
-      console.error("❌ Add to cart failed:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Thêm vào giỏ hàng thất bại!");
+      console.error('❌ Add to cart failed:', error);
+      MySwal.fire({
+        icon: 'error',
+        title: 'Lỗi kết nối!',
+        text: 'Không thể kết nối tới máy chủ.',
+      });
     }
   };
+
 
 
   const handleClose = () => {
@@ -197,8 +240,8 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
               <h2 className="success-title" >
                 Added to Cart!
               </h2>
-              
-              <div className="success-details" style={{ height : "225px" }}>
+
+              <div className="success-details" style={{ height: "225px" }}>
                 <div className="success-detail-row">
                   <span className="success-detail-label">Product:</span>
                   <span className="success-detail-value">{product.name}</span>

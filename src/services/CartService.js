@@ -4,7 +4,7 @@ api.defaults.withCredentials = true;
 
 export const addToCart = async (productVariantId , quantity) => {
   const res = await api.post(`/cart/${productVariantId}`,{quantity});
-  return res.data;
+  return res;
 };
 
 export const getCart = async () => {

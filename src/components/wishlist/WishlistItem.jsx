@@ -4,12 +4,6 @@ import { Link } from "react-router-dom";
 const WishlistItem = ({ item, onRemove, onAddToCart }) => {
   const product = item.product || {}; 
   const { id, name, description, price, imageUrl, subcategoryId } = product;
-   useEffect(() => {
-    console.log("🧱 WishlistItem mounted:");
-    console.log("➡️ item:", item.productId);
-    console.log("➡️ product:", product);
-  }, [item, product]);
-
 
   return (
     <div className="w-r u-s-m-b-30">
