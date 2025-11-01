@@ -4,16 +4,18 @@ import Breadcrumb from "../components/Breadcrumb";
 import WishlistItem from "../components/wishlist/WishlistItem";
 import {
   getWishlist,
-} from "../services/WishlistService"; // import thêm các hàm khác
-
+  removeFromWishlist,
+} from "../services/WishlistService";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 const Wishlist = () => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const breadcrumbItems = [
+  const MySwal = withReactContent(Swal);
+  const breadcrumbItems = [ 
     { label: "Home", link: "/", hasSeparator: true },
     { label: "Wishlist", link: "/wishlist", isMarked: true },
-  ];
+  ];  
 
   // 🧩 Lấy danh sách wishlist khi mount
   useEffect(() => {
@@ -30,15 +32,28 @@ const Wishlist = () => {
     fetchWishlist();
   }, []);
 
-  // 🗑️ Xóa 1 sản phẩm khỏi wishlist
   const handleRemoveItem = async (itemId) => {
-    // try {
-    //   await removeFromWishlist(itemId);
-    //   setWishlistItems((prev) => prev.filter((item) => item.id !== itemId));
-    // } catch (err) {
-    //   console.error("Failed to remove item:", err);
-    // }
-  };
+  const result = await MySwal.fire({
+    title: "Xóa sản phẩm?",
+    text: "Bạn có chắc muốn xóa sản phẩm này khỏi wishlist?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Xóa",
+    cancelButtonText: "Hủy",
+  });
+
+  if (result.isConfirmed) {
+    // Gọi API xóa
+    setWishlistItems((prev) => prev.filter((i) => i.id !== itemId));
+
+    MySwal.fire({
+      icon: "success",
+      title: "Đã xóa!",
+      timer: 1200,
+      showConfirmButton: false,
+    });
+  }
+};
 
   // 🛒 Thêm vào giỏ hàng
   const handleAddToCart = async (item) => {
@@ -119,7 +134,7 @@ const Wishlist = () => {
                       <WishlistItem
                         key={item.id}
                         item={item}
-                        // onRemove={handleRemoveItem}
+                        onRemove={handleRemoveItem} 
                         // onAddToCart={handleAddToCart}
                       />
                     ))}
