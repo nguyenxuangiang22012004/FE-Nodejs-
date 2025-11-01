@@ -67,7 +67,7 @@ const ProductCard = ({ product, onQuickLook, onAddToCart }) => {
               <a className="fas fa-search" onClick={onQuickLook}></a>
             </div>
             <div className="product-m__add-cart">
-              <a className="btn--e-brand"  onClick={handleAddToCart} >Add to Cart</a>
+              <a className="btn--e-brand" onClick={handleAddToCart} >Add to Cart</a>
             </div>
           </div>
           <div className="product-m__content">

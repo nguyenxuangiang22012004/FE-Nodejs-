@@ -10,7 +10,7 @@ const SignIn = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
-  // Handle errors from OAuthCallback
+
   useEffect(() => {
     if (location.state?.error) {
       setError(location.state.error);
@@ -22,7 +22,6 @@ const SignIn = () => {
     setError('');
     setFieldErrors({ email: '', password: '' });
 
-    // Client-side validation
     const newErrors = {};
     if (!email.trim()) newErrors.email = 'Email không được để trống';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Email không hợp lệ';

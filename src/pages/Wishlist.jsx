@@ -20,6 +20,7 @@ const Wishlist = () => {
     const fetchWishlist = async () => {
       try {
         const res = await getWishlist();
+        setWishlistItems(res?.wishlistDetailts || []);
       } catch (err) {
         console.error("Failed to load wishlist:", err);
       } finally {
