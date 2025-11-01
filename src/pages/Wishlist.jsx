@@ -4,7 +4,7 @@ import Breadcrumb from "../components/Breadcrumb";
 import WishlistItem from "../components/wishlist/WishlistItem";
 import {
   getWishlist,
-  removeFromWishlist,
+  removeFromWishlist, clearWishlist
 } from "../services/WishlistService";
 import AddToCartModal from "../components/modal/AddToCartModal";
 import { addToCart } from "../services/CartService";
@@ -88,14 +88,45 @@ const Wishlist = () => {
     setShowAddToCartModal(false);
   };
 
-  // ❌ Xóa toàn bộ wishlist
   const handleClearWishlist = async () => {
-    // try {
-    //   await clearWishlist();
-    //   setWishlistItems([]);
-    // } catch (err) {
-    //   console.error("Failed to clear wishlist:", err);
-    // }
+    const result = await MySwal.fire({
+      title: "Xóa toàn bộ Wishlist?",
+      text: "Bạn có chắc muốn xóa TẤT CẢ sản phẩm khỏi wishlist không?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa hết",
+      cancelButtonText: "Hủy",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await clearWishlist();
+        
+        if (res.success) {
+          setWishlistItems([]);
+
+          MySwal.fire({
+            icon: "success",
+            title: "Đã xóa toàn bộ!",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        } else {
+          MySwal.fire({
+            icon: "error",
+            title: "Xóa thất bại!",
+            text: res.message || "Vui lòng thử lại.",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to clear wishlist:", err);
+        MySwal.fire({
+          icon: "error",
+          title: "Lỗi kết nối!",
+          text: "Không thể kết nối đến server.",
+        });
+      }
+    }
   };
 
   if (loading)

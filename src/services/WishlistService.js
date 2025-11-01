@@ -21,3 +21,8 @@ export const removeFromWishlist  = async (productVariantId) => {
     throw error;
   }
 };
+
+export const clearWishlist = async () => {
+  const res = await api.delete("/wishlist");
+  return res;
+};
