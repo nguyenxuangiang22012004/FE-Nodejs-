@@ -1,14 +1,101 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getCart, deleteCartItem } from "../../services/CartService";
+import { getProductDetail } from "../../services/NewArrivalService";
+import Swal from "sweetalert2";
 
 const MiniCartHeader = () => {
+  const [cartItems, setCartItems] = useState([]);
+
+  useEffect(() => {
+    const fetchCartData = async () => {
+      try {
+        const res = await getCart();
+        const items = Array.isArray(res?.cartDetails) ? res.cartDetails : [];
+
+        const itemsWithDetails = await Promise.all(
+          items.map(async (item) => {
+            const idProduct = item.productVariant?.productId;
+            const baseItem = {
+              id: item.id,
+              productVariantId: item.productVariantId,
+              idProduct,
+              quantity: item.quantity,
+              price: item.unitPrice,
+              color: item.productVariant?.color || "N/A",
+              size: item.productVariant?.size || "N/A",
+              image: item.productVariant?.variantImageUrl || "/images/default.jpg",
+            };
+
+            try {
+              const productRes = await getProductDetail(idProduct);
+              const productName = productRes?.data?.name || "Unnamed Product";
+              return { ...baseItem, productName };
+            } catch (err) {
+              console.error(`Error fetching product ${idProduct}:`, err);
+              return { ...baseItem, productName: "Unknown Product" };
+            }
+          })
+        );
+
+        setCartItems(itemsWithDetails);
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+        setCartItems([]);
+      }
+    };
+
+    fetchCartData();
+  }, []);
+
+  // Giữ nguyên UI, chỉ chỉnh phần xóa có Swal
+  const handleDeleteItem = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Xóa sản phẩm này?",
+      text: "Bạn có chắc muốn xóa sản phẩm khỏi giỏ hàng?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        await deleteCartItem(id);
+        setCartItems((prev) => prev.filter((item) => item.id !== id));
+
+        Swal.fire({
+          icon: "success",
+          title: "Đã xóa!",
+          text: "Sản phẩm đã được xóa khỏi giỏ hàng.",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi!",
+          text: "Không thể xóa sản phẩm. Vui lòng thử lại!",
+        });
+      }
+    }
+  };
+
+   const subtotal = cartItems.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+
+
   return (
     <div className="menu-init" id="navigation3">
       <button
         className="btn btn--icon toggle-button toggle-button--secondary fas fa-shopping-bag toggle-button-shop"
         type="button"
       ></button>
-      <span className="total-item-round">2</span>
+      <span className="total-item-round">{cartItems.length}</span>
 
       <div className="ah-lg-mode">
         <span className="ah-close">✕ Close</span>
@@ -28,53 +115,81 @@ const MiniCartHeader = () => {
           <li className="has-dropdown">
             <a className="mini-cart-shop-link">
               <i className="fas fa-shopping-bag"></i>
-              <span className="total-item-round">2</span>
+              <span className="total-item-round">{cartItems.length}</span>
             </a>
             <span className="js-menu-toggle"></span>
 
             <div className="mini-cart">
               <div className="mini-product-container gl-scroll u-s-m-b-15">
-                {/* Mini cart items */}
-                <div className="card-mini-product">
-                  <div className="mini-product">
-                    <div className="mini-product__image-wrapper">
-                      <Link className="mini-product__link" to="/product-detail">
-                        <img
-                          className="u-img-fluid"
-                          src="images/product/electronic/product3.jpg"
-                          alt="Yellow Wireless Headphone"
-                        />
-                      </Link>
+                {/* ✅ Render dữ liệu thật từ cartItems */}
+                {cartItems.length > 0 ? (
+                  cartItems.map((item) => (
+                    <div className="card-mini-product" key={item.id}>
+                      <div className="mini-product">
+                        <div className="mini-product__image-wrapper">
+                          <Link
+                            className="mini-product__link"
+                            to={`/product/${item.idProduct}`}
+                          >
+                            <img
+                              className="u-img-fluid"
+                              src={item.image}
+                              alt={item.productName}
+                            />
+                          </Link>
+                        </div>
+                        <div className="mini-product__info-wrapper">
+                          <span className="mini-product__category">
+                            <Link to="/shop">Sản phẩm</Link>
+                          </span>
+                          <span className="mini-product__name">
+                            <Link to={`/product/${item.idProduct}`}>
+                              {item.productName}
+                            </Link>
+                          </span>
+                          <span className="mini-product__quantity">
+                            {item.quantity} ×
+                          </span>
+                          <span className="mini-product__price">
+                            {item.price.toLocaleString("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      <a
+                        className="mini-product__delete-link far fa-trash-alt"
+                        onClick={() => handleDeleteItem(item.id)}
+                      ></a>
                     </div>
-                    <div className="mini-product__info-wrapper">
-                      <span className="mini-product__category">
-                        <Link to="/shop-side-version-2">Electronics</Link>
-                      </span>
-                      <span className="mini-product__name">
-                        <Link to="/product-detail">Yellow Wireless Headphone</Link>
-                      </span>
-                      <span className="mini-product__quantity">1 x</span>
-                      <span className="mini-product__price">$8</span>
-                    </div>
-                  </div>
-                  <a className="mini-product__delete-link far fa-trash-alt"></a>
-                </div>
+                  ))
+                ) : (
+                  <p className="u-s-m-b-15" style={{ textAlign: "center" }}>
+                    Giỏ hàng trống
+                  </p>
+                )}
               </div>
 
               <div className="mini-product-stat">
                 <div className="mini-total">
-                  <span className="subtotal-text">SUBTOTAL</span>
-                  <span className="subtotal-value">$16</span>
+                  <span className="subtotal-text">TỔNG TIỀN</span>
+                  <span className="subtotal-value">
+                    {subtotal.toLocaleString("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    })}
+                  </span>
                 </div>
                 <div className="mini-action">
                   <Link className="mini-link btn--e-brand-b-2" to="/checkout">
-                    PROCEED TO CHECKOUT
+                    THANH TOÁN
                   </Link>
                   <Link
                     className="mini-link btn--e-transparent-secondary-b-2"
                     to="/cart"
                   >
-                    VIEW CART
+                    XEM GIỎ HÀNG
                   </Link>
                 </div>
               </div>
