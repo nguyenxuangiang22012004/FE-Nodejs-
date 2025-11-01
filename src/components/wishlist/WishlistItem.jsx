@@ -1,9 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const WishlistItem = ({ item, onRemove, onAddToCart }) => {
-  const product = item.product || {}; // tránh undefined
+  const product = item.product || {}; 
   const { id, name, description, price, imageUrl, subcategoryId } = product;
+   useEffect(() => {
+    console.log("🧱 WishlistItem mounted:");
+    console.log("➡️ item:", item.productId);
+    console.log("➡️ product:", product);
+  }, [item, product]);
+
 
   return (
     <div className="w-r u-s-m-b-30">
@@ -22,8 +28,8 @@ const WishlistItem = ({ item, onRemove, onAddToCart }) => {
             </span>
 
             <span className="w-r__category">
-              <Link to={`/shop?subcategory=${subcategoryId}`}>
-                {subcategoryId || "Uncategorized"}
+              <Link to={`#`}>
+                {description || "Uncategorized"}
               </Link>
             </span>
 
@@ -55,7 +61,7 @@ const WishlistItem = ({ item, onRemove, onAddToCart }) => {
 
           <button
             className="w-r__link btn--e-transparent-platinum-b-2"
-            onClick={() => onRemove(item.id)}
+            onClick={() => onRemove(item.productId)}
           >
             REMOVE
           </button>

@@ -14,7 +14,7 @@ export const addToWishlist = async (productId) => {
 
 export const removeFromWishlist  = async (productVariantId) => {
   try {
-    const res = await api.delete(`/cart/${productVariantId}`);
+    const res = await api.delete(`/wishlist/${productVariantId}`);
     return res;
   } catch (error) {
     console.error('Error deleting cart item:', error);

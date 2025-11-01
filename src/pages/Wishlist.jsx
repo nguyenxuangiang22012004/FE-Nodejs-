@@ -12,12 +12,11 @@ const Wishlist = () => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const MySwal = withReactContent(Swal);
-  const breadcrumbItems = [ 
+  const breadcrumbItems = [
     { label: "Home", link: "/", hasSeparator: true },
     { label: "Wishlist", link: "/wishlist", isMarked: true },
-  ];  
+  ];
 
-  // 🧩 Lấy danh sách wishlist khi mount
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
@@ -32,7 +31,7 @@ const Wishlist = () => {
     fetchWishlist();
   }, []);
 
-  const handleRemoveItem = async (itemId) => {
+  const handleRemoveItem = async (productId) => {
   const result = await MySwal.fire({
     title: "Xóa sản phẩm?",
     text: "Bạn có chắc muốn xóa sản phẩm này khỏi wishlist?",
@@ -43,17 +42,38 @@ const Wishlist = () => {
   });
 
   if (result.isConfirmed) {
-    // Gọi API xóa
-    setWishlistItems((prev) => prev.filter((i) => i.id !== itemId));
+    try {
+      const res = await removeFromWishlist(productId);
 
-    MySwal.fire({
-      icon: "success",
-      title: "Đã xóa!",
-      timer: 1200,
-      showConfirmButton: false,
-    });
+      if (res.success) {
+        setWishlistItems((prev) =>
+          prev.filter((i) => i.product?.id !== productId)
+        );
+
+        MySwal.fire({
+          icon: "success",
+          title: "Đã xóa!",
+          timer: 1200,
+          showConfirmButton: false,
+        });
+      } else {
+        MySwal.fire({
+          icon: "error",
+          title: "Xóa thất bại!",
+          text: res.message || "Vui lòng thử lại.",
+        });
+      }
+    } catch (err) {
+      console.error("Remove wishlist item failed:", err);
+      MySwal.fire({
+        icon: "error",
+        title: "Lỗi khi xóa!",
+        text: "Không thể kết nối đến server.",
+      });
+    }
   }
 };
+
 
   // 🛒 Thêm vào giỏ hàng
   const handleAddToCart = async (item) => {
@@ -134,8 +154,8 @@ const Wishlist = () => {
                       <WishlistItem
                         key={item.id}
                         item={item}
-                        onRemove={handleRemoveItem} 
-                        // onAddToCart={handleAddToCart}
+                        onRemove={handleRemoveItem}
+                      // onAddToCart={handleAddToCart}
                       />
                     ))}
 
