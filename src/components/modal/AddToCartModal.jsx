@@ -197,13 +197,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
               <h2 className="success-title" >
                 Added to Cart!
               </h2>
-
-              {/* <img
-                className="success-product-img"
-                src={product.imageUrl || product.image}
-                alt={product.name}
-              /> */}
-
+              
               <div className="success-details" style={{ height : "225px" }}>
                 <div className="success-detail-row">
                   <span className="success-detail-label">Product:</span>

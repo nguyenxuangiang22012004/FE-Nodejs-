@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { logout } from '../services/AuthService';
 import { useNavigate, Link } from 'react-router-dom';
+import MiniCartHeader from "./cart/MiniCartHeader";
 const Header = () => {
 
   const navigate = useNavigate();
@@ -335,63 +336,7 @@ const Header = () => {
             </div>
 
             {/* Shopping Cart */}
-            <div className="menu-init" id="navigation3">
-              <button className="btn btn--icon toggle-button toggle-button--secondary fas fa-shopping-bag toggle-button-shop" type="button"></button>
-              <span className="total-item-round">2</span>
-              <div className="ah-lg-mode">
-                <span className="ah-close">✕ Close</span>
-                <ul className="ah-list ah-list--design1 ah-list--link-color-secondary">
-                  <li><a href="index.html"><i className="fas fa-home u-c-brand"></i></a></li>
-                  <li>
-                    <Link to="/wishlist">
-                      <i className="far fa-heart"></i>
-                    </Link>
-                  </li>
-                  <li className="has-dropdown">
-                    <a className="mini-cart-shop-link">
-                      <i className="fas fa-shopping-bag"></i>
-                      <span className="total-item-round">2</span>
-                    </a>
-                    <span className="js-menu-toggle"></span>
-                    <div className="mini-cart">
-                      <div className="mini-product-container gl-scroll u-s-m-b-15">
-                        {/* Mini cart items would go here */}
-                        <div className="card-mini-product">
-                          <div className="mini-product">
-                            <div className="mini-product__image-wrapper">
-                              <a className="mini-product__link" href="product-detail.html">
-                                <img className="u-img-fluid" src="images/product/electronic/product3.jpg" alt="" />
-                              </a>
-                            </div>
-                            <div className="mini-product__info-wrapper">
-                              <span className="mini-product__category">
-                                <a href="shop-side-version-2.html">Electronics</a>
-                              </span>
-                              <span className="mini-product__name">
-                                <a href="product-detail.html">Yellow Wireless Headphone</a>
-                              </span>
-                              <span className="mini-product__quantity">1 x</span>
-                              <span className="mini-product__price">$8</span>
-                            </div>
-                          </div>
-                          <a className="mini-product__delete-link far fa-trash-alt"></a>
-                        </div>
-                      </div>
-                      <div className="mini-product-stat">
-                        <div className="mini-total">
-                          <span className="subtotal-text">SUBTOTAL</span>
-                          <span className="subtotal-value">$16</span>
-                        </div>
-                        <div className="mini-action">
-                          <a className="mini-link btn--e-brand-b-2" href="checkout.html">PROCEED TO CHECKOUT</a>
-                          <a className="mini-link btn--e-transparent-secondary-b-2" href="cart.html">VIEW CART</a>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
+            <MiniCartHeader />
           </div>
         </div>
       </nav>

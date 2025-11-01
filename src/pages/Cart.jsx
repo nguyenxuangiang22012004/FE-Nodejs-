@@ -1,103 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CartBreadcrumb from '../components/cart/CartBreadcrumb';
 import CartItems from '../components/cart/CartItems';
 import CartSummary from '../components/cart/CartSummary';
 import ShippingCalculator from '../components/cart/ShippingCalculator';
 import CartNote from '../components/cart/CartNote';
+import { getCart } from '../services/CartService';
+import {getProductDetail} from '../services/NewArrivalService';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: 'Yellow Wireless Headphone',
-      category: 'Electronics',
-      price: 125.00,
-      quantity: 1,
-      image: 'images/product/electronic/product3.jpg',
-      variants: [
-        { name: 'Size', value: '22' },
-        { name: 'Color', value: 'Red' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'New Dress D Nice Elegant',
-      category: 'Women Clothing',
-      price: 125.00,
-      quantity: 1,
-      image: 'images/product/women/product8.jpg',
-      variants: [
-        { name: 'Size', value: '22' },
-        { name: 'Color', value: 'Red' }
-      ]
-    },
-    {
-      id: 3,
-      name: 'New Fashion D Nice Elegant',
-      category: 'Men Clothing',
-      price: 125.00,
-      quantity: 1,
-      image: 'images/product/men/product8.jpg',
-      variants: [
-        { name: 'Size', value: '22' },
-        { name: 'Color', value: 'Red' }
-      ]
-    }
-  ]);
-
-  const [shippingInfo, setShippingInfo] = useState({
-    country: '',
-    state: '',
-    zip: ''
-  });
-
+  const [cartItems, setCartItems] = useState([]);
+  const [shippingInfo, setShippingInfo] = useState({ country: '', state: '', zip: '' });
   const [note, setNote] = useState('');
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      try {
+        const res = await getCart();
+        console.log('Cart API response:', res);
+
+        const items = Array.isArray(res?.cartDetails) ? res.cartDetails : [];
+        
+        const mappedItems = items.map(item => ({
+          id: item.id,
+          idProduct: item.productVariant?.productId || null,
+          productVariantId: item.productVariantId,
+          quantity: item.quantity,
+          price: item.unitPrice,
+          color: item.productVariant?.color || 'N/A',
+          size: item.productVariant?.size || 'N/A',
+          image: item.productVariant?.variantImageUrl || 'images/default.jpg',
+        }));
+
+        const itemsWithProductNames = await Promise.all(
+          mappedItems.map(async (item) => {
+            if (!item.idProduct) return { ...item, productName: 'Unknown Product' };
+
+            try {
+              const productRes = await getProductDetail(item.idProduct);
+              const productName =
+                productRes?.data?.name ||'Unnamed Product';
+
+              return { ...item, productName };
+            } catch (err) {
+              console.error(`Error fetching product ${item.idProduct}`, err);
+              return { ...item, productName: 'Unknown Product' };
+            }
+          })
+        );
+
+        setCartItems(itemsWithProductNames);
+      } catch (err) {
+        console.error('Error fetching cart items:', err);
+        setCartItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCartItems();
+  }, []);
+
+  // --- Handlers ---
   const handleQuantityChange = (id, change) => {
-    setCartItems(prevItems => 
-      prevItems.map(item => 
-        item.id === id 
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.id === id
           ? { ...item, quantity: Math.max(1, item.quantity + change) }
           : item
       )
     );
   };
 
-  const handleRemoveItem = (id) => {
+  const handleRemoveItem = id => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
   };
 
-  const handleClearCart = () => {
-    setCartItems([]);
-  };
-
-  const handleUpdateCart = () => {
-    // Logic to update cart
-    console.log('Cart updated');
-  };
-
-  const handleShippingInfoChange = (field, value) => {
+  const handleClearCart = () => setCartItems([]);
+  const handleUpdateCart = () => { /* TODO: Update API */ };
+  const handleShippingInfoChange = (field, value) =>
     setShippingInfo(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleCalculateShipping = () => {
-    // Logic to calculate shipping
+  const handleCalculateShipping = () =>
     console.log('Calculating shipping with:', shippingInfo);
-  };
+  const handleNoteChange = value => setNote(value);
+  const handleProceedToCheckout = () => console.log('Proceeding to checkout');
 
-  const handleNoteChange = (value) => {
-    setNote(value);
-  };
-
-  const handleProceedToCheckout = () => {
-    // Logic to proceed to checkout
-    console.log('Proceeding to checkout');
-  };
-
-  // Calculate totals
-  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const shipping = 4.00;
-  const tax = 0.00;
+  // --- Totals ---
+  const subtotal = Array.isArray(cartItems)
+    ? cartItems.reduce((total, item) => total + (item.price || 0) * (item.quantity || 0), 0)
+    : 0;
+  const shipping = 4.0;
+  const tax = 0.0;
   const grandTotal = subtotal + shipping + tax;
 
   return (
@@ -131,7 +124,7 @@ const Cart = () => {
           <div className="container">
             <div className="row">
               <div className="col-lg-12 col-md-12 col-sm-12 u-s-m-b-30">
-                <CartItems 
+                <CartItems
                   items={cartItems}
                   onQuantityChange={handleQuantityChange}
                   onRemoveItem={handleRemoveItem}
@@ -146,15 +139,15 @@ const Cart = () => {
                     </a>
                   </div>
                   <div className="route-box__g2">
-                    <button 
-                      className="route-box__link" 
+                    <button
+                      className="route-box__link"
                       onClick={handleClearCart}
                     >
                       <i className="fas fa-trash"></i>
                       <span>CLEAR CART</span>
                     </button>
-                    <button 
-                      className="route-box__link" 
+                    <button
+                      className="route-box__link"
                       onClick={handleUpdateCart}
                     >
                       <i className="fas fa-sync"></i>
@@ -177,20 +170,20 @@ const Cart = () => {
                 <form className="f-cart">
                   <div className="row">
                     <div className="col-lg-4 col-md-6 u-s-m-b-30">
-                      <ShippingCalculator 
+                      <ShippingCalculator
                         shippingInfo={shippingInfo}
                         onShippingInfoChange={handleShippingInfoChange}
                         onCalculateShipping={handleCalculateShipping}
                       />
                     </div>
                     <div className="col-lg-4 col-md-6 u-s-m-b-30">
-                      <CartNote 
+                      <CartNote
                         note={note}
                         onNoteChange={handleNoteChange}
                       />
                     </div>
                     <div className="col-lg-4 col-md-6 u-s-m-b-30">
-                      <CartSummary 
+                      <CartSummary
                         subtotal={subtotal}
                         shipping={shipping}
                         tax={tax}
