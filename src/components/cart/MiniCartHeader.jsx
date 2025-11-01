@@ -140,7 +140,7 @@ const MiniCartHeader = () => {
                         </div>
                         <div className="mini-product__info-wrapper">
                           <span className="mini-product__category">
-                            <Link to="/shop">Sản phẩm</Link>
+                            <Link to="/shop">Products</Link>
                           </span>
                           <span className="mini-product__name">
                             <Link to={`/product/${item.idProduct}`}>
@@ -166,14 +166,14 @@ const MiniCartHeader = () => {
                   ))
                 ) : (
                   <p className="u-s-m-b-15" style={{ textAlign: "center" }}>
-                    Giỏ hàng trống
+                    Empty Carts 
                   </p>
                 )}
               </div>
 
               <div className="mini-product-stat">
                 <div className="mini-total">
-                  <span className="subtotal-text">TỔNG TIỀN</span>
+                  <span className="subtotal-text">Subtotal</span>
                   <span className="subtotal-value">
                     {subtotal.toLocaleString("vi-VN", {
                       style: "currency",
@@ -183,13 +183,13 @@ const MiniCartHeader = () => {
                 </div>
                 <div className="mini-action">
                   <Link className="mini-link btn--e-brand-b-2" to="/checkout">
-                    THANH TOÁN
+                    PROCEED TO CHECKOUT
                   </Link>
                   <Link
                     className="mini-link btn--e-transparent-secondary-b-2"
                     to="/cart"
                   >
-                    XEM GIỎ HÀNG
+                    VIEW CART
                   </Link>
                 </div>
               </div>
