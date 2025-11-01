@@ -42,3 +42,13 @@ export const deleteCartItem = async (productVariantId) => {
     throw error;
   }
 };
+
+export const clearCart = async () => {
+  try {
+    const res = await api.delete('/cart'); 
+    return res.data;
+  } catch (error) {
+    console.error('Error clearing cart:', error);
+    throw error;
+  }
+};

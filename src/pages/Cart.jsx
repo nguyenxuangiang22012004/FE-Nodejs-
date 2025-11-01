@@ -4,7 +4,7 @@ import CartItems from '../components/cart/CartItems';
 import CartSummary from '../components/cart/CartSummary';
 import ShippingCalculator from '../components/cart/ShippingCalculator';
 import CartNote from '../components/cart/CartNote';
-import { getCart, updateCart, deleteCartItem } from '../services/CartService';
+import { getCart, updateCart, deleteCartItem, clearCart } from '../services/CartService';
 import { getProductDetail } from '../services/NewArrivalService';
 import Swal from 'sweetalert2';
 const Cart = () => {
@@ -99,15 +99,56 @@ const Cart = () => {
     }
   };
 
-  const handleClearCart = () => setCartItems([]);
+  const handleClearCart = async () => {
+    const result = await Swal.fire({
+      title: 'Xác nhận xóa toàn bộ giỏ hàng?',
+      text: 'Tất cả sản phẩm sẽ bị xóa. Hành động này không thể hoàn tác.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Xóa tất cả',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await clearCart();
+      setCartItems([]);
+      Swal.fire('Đã xóa!', 'Toàn bộ giỏ hàng đã được làm trống.', 'success');
+    } catch (error) {
+      console.error('Failed to clear cart:', error);
+      Swal.fire('Lỗi', 'Không thể xóa giỏ hàng. Vui lòng thử lại.', 'error');
+    }
+  };
   const handleUpdateCart = async () => {
+    if (cartItems.length === 0) {
+      Swal.fire('Giỏ hàng trống', 'Không có sản phẩm nào để cập nhật.', 'info');
+      return;
+    }
+
     try {
       const res = await updateCart(cartItems);
       console.log('Cart updated successfully:', res);
-      alert('Cart updated successfully!');
+
+      Swal.fire({
+        title: 'Thành công!',
+        text: 'Giỏ hàng của bạn đã được cập nhật.',
+        icon: 'success',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'OK',
+      });
     } catch (error) {
       console.error('Failed to update cart:', error);
-      alert('Failed to update cart.');
+
+      Swal.fire({
+        title: 'Lỗi!',
+        text: 'Không thể cập nhật giỏ hàng. Vui lòng thử lại.',
+        icon: 'error',
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Đóng',
+      });
     }
   };
   const handleShippingInfoChange = (field, value) =>
