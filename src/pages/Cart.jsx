@@ -4,7 +4,7 @@ import CartItems from '../components/cart/CartItems';
 import CartSummary from '../components/cart/CartSummary';
 import ShippingCalculator from '../components/cart/ShippingCalculator';
 import CartNote from '../components/cart/CartNote';
-import { getCart } from '../services/CartService';
+import { getCart ,updateCart } from '../services/CartService';
 import {getProductDetail} from '../services/NewArrivalService';
 
 const Cart = () => {
@@ -77,7 +77,16 @@ const Cart = () => {
   };
 
   const handleClearCart = () => setCartItems([]);
-  const handleUpdateCart = () => { /* TODO: Update API */ };
+  const handleUpdateCart = async () => {
+  try {
+    const res = await updateCart(cartItems);
+    console.log('Cart updated successfully:', res);
+    alert('Cart updated successfully!');
+  } catch (error) {
+    console.error('Failed to update cart:', error);
+    alert('Failed to update cart.');
+  }
+};
   const handleShippingInfoChange = (field, value) =>
     setShippingInfo(prev => ({ ...prev, [field]: value }));
   const handleCalculateShipping = () =>
