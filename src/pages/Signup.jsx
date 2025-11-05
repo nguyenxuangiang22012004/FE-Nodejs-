@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { register } from '../services/AuthService';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +14,6 @@ const Signup = () => {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -31,14 +31,22 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
-    setError('');
 
     try {
       await register(formData);
-      setMessage('Registration successful! Please check your email to verify your account.');
+      Swal.fire({
+        icon: 'success',
+        title: 'Registration Successful 🎉',
+        text: 'Please check your email to verify your account.',
+        confirmButtonColor: '#52c41a',
+      });
     } catch (err) {
-      setError(err.message || 'An error occurred during registration.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Registration Failed ❌',
+        text: err.message || 'An error occurred during registration.',
+        confirmButtonColor: '#ff4d4f',
+      });
     } finally {
       setLoading(false);
     }
@@ -46,7 +54,7 @@ const Signup = () => {
 
   return (
     <>
-      {/*====== Section 1 ======*/}
+      {/*====== Section 1 ======*/} 
       <div className="u-s-p-y-60">
         <div className="section__content">
           <div className="container">
@@ -65,9 +73,8 @@ const Signup = () => {
           </div>
         </div>
       </div>
-      {/*====== End - Section 1 ======*/}
 
-      {/*====== Section 2 ======*/}
+      {/*====== Section 2 ======*/} 
       <div className="u-s-p-b-60">
         <div className="section__intro u-s-m-b-60">
           <div className="container">
@@ -90,6 +97,7 @@ const Signup = () => {
                     <h1 className="gl-h1">PERSONAL INFORMATION</h1>
 
                     <form className="l-f-o__form" onSubmit={handleSubmit}>
+                      {/* Social buttons */}
                       <div className="gl-s-api">
                         <div className="u-s-m-b-15">
                           <button className="gl-s-api__btn gl-s-api__btn--fb" type="button">
@@ -105,6 +113,7 @@ const Signup = () => {
                         </div>
                       </div>
 
+                      {/* Input fields */}
                       <div className="u-s-m-b-30">
                         <label className="gl-label" htmlFor="reg-fname">FIRST NAME *</label>
                         <input
@@ -133,6 +142,7 @@ const Signup = () => {
                         />
                       </div>
 
+                      {/* Birthday & gender */}
                       <div className="gl-inline">
                         <div className="u-s-m-b-30">
                           <span className="gl-label">DATE OF BIRTH</span>
@@ -237,18 +247,6 @@ const Signup = () => {
                         Back to Shop
                       </Link>
                     </form>
-
-                    {/* Success & Error Messages */}
-                    {message && (
-                      <div className="alert custom-alert u-s-m-t-20" role="alert">
-                        {message}
-                      </div>
-                    )}
-                    {error && (
-                      <div className="alert custom-alert u-s-m-t-20" role="alert">
-                        {error}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -256,17 +254,6 @@ const Signup = () => {
           </div>
         </div>
       </div>
-      <style jsx>{`
-  .custom-alert {
-    background-color: #ffe5e5; /* nền đỏ nhạt */
-    color: #b30000; /* chữ đỏ đậm */
-    border: 1px solid #ffb3b3;
-    border-radius: 6px;
-    padding: 12px 16px;
-    font-weight: 500;
-  }
-`}</style>
-
     </>
   );
 };

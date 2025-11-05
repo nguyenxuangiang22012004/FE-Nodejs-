@@ -32,7 +32,7 @@ export const getAllProducts = async (filters = {}) => {
     const url = `/new-arrivals/products${queryString ? `?${queryString}` : ""}`;
 
     const response = await api.get(url);
-    
+
     if (!response.data || !response.data.data) {
       throw new Error("Invalid response format from server");
     }
