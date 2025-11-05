@@ -352,10 +352,6 @@ const DashAddressAdd = () => {
 
                         {/* 🗺️ LEAFLET MAP SECTION */}
                         <div className="u-s-m-b-30">
-                          <label className="gl-label">Vị trí trên bản đồ</label>
-                          <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-                            Tọa độ: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                          </p>
                           <div style={{ height: '400px', width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' }}>
                             <MapContainer
                               center={[selectedLocation.lat, selectedLocation.lng]}
