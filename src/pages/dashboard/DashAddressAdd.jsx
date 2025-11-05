@@ -1,9 +1,25 @@
-import React, { useState, useCallback } from 'react';
-import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
+// Fix cho icon marker mặc định của Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Component để cập nhật center của map
+function ChangeMapView({ center }) {
+  const map = useMap();
+  map.setView(center, 15);
+  return null;
+}
 
 const DashAddressAdd = () => {
- const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     phone: '',
@@ -19,9 +35,10 @@ const DashAddressAdd = () => {
     lng: 105.804817, // Hà Nội mặc định
   });
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // dùng key trong .env
-  });
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState('');
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -29,20 +46,91 @@ const DashAddressAdd = () => {
       ...prevState,
       [id.replace('address-', '')]: value,
     }));
+
+    // Nếu là input street address thì search
+    if (id === 'address-street') {
+      handleAddressSearch(value);
+    }
+  };
+
+  // Debounce function
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.street.length > 2) {
+        searchAddress(formData.street);
+      } else {
+        setSearchResults([]);
+        setShowSuggestions(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.street]);
+
+  const handleAddressSearch = (value) => {
+    if (value.length > 2) {
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+      setSearchResults([]);
+    }
+  };
+
+  // Search địa chỉ qua Nominatim API (OpenStreetMap)
+  const searchAddress = async (query) => {
+    if (!query || query.length < 3) return;
+
+    setIsSearching(true);
+    try {
+      // Giới hạn search trong Việt Nam
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?` +
+        `q=${encodeURIComponent(query)}&` +
+        `countrycodes=vn&` + // Chỉ tìm ở Việt Nam
+        `format=json&` +
+        `addressdetails=1&` +
+        `limit=5&` +
+        `accept-language=vi`
+      );
+      
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error('Error searching address:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Chọn địa chỉ từ gợi ý
+  const handleSelectAddress = (result) => {
+    const fullAddress = result.display_name;
+    
+    setFormData(prev => ({
+      ...prev,
+      street: fullAddress
+    }));
+    
+    setSelectedLocation({
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon)
+    });
+    
+    setSelectedAddress(fullAddress);
+    setShowSuggestions(false);
+    setSearchResults([]);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', { ...formData, selectedLocation });
+    console.log('Form submitted:', { 
+      ...formData, 
+      selectedLocation,
+      fullAddress: selectedAddress || formData.street
+    });
   };
 
-  // Hàm khi click chọn vị trí trên bản đồ
-  const handleMapClick = useCallback((e) => {
-    setSelectedLocation({
-      lat: e.latLng.lat(),
-      lng: e.latLng.lng(),
-    });
-  }, []);
   return (
     <>
       {/*====== Section 1 ======*/}
@@ -193,38 +281,94 @@ const DashAddressAdd = () => {
                               required
                             />
                           </div>
-                          <div className="u-s-m-b-30">
+                          <div className="u-s-m-b-30" style={{ position: 'relative' }}>
                             <label className="gl-label" htmlFor="address-street">
-                              STREET ADDRESS *
+                              STREET ADDRESS * (Nhập để tìm kiếm)
                             </label>
                             <input
                               className="input-text input-text--primary-style"
                               type="text"
                               id="address-street"
-                              placeholder="House Name and Street"
+                              placeholder="Nhập địa chỉ để tìm kiếm..."
                               value={formData.street}
                               onChange={handleInputChange}
+                              autoComplete="off"
                               required
                             />
+                            
+                            {/* Dropdown gợi ý địa chỉ */}
+                            {showSuggestions && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                backgroundColor: 'white',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                maxHeight: '300px',
+                                overflowY: 'auto',
+                                zIndex: 1000,
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                                marginTop: '5px'
+                              }}>
+                                {isSearching && (
+                                  <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
+                                    Đang tìm kiếm...
+                                  </div>
+                                )}
+                                
+                                {!isSearching && searchResults.length === 0 && formData.street.length > 2 && (
+                                  <div style={{ padding: '15px', textAlign: 'center', color: '#999' }}>
+                                    Không tìm thấy địa chỉ
+                                  </div>
+                                )}
+                                
+                                {!isSearching && searchResults.map((result, index) => (
+                                  <div
+                                    key={index}
+                                    onClick={() => handleSelectAddress(result)}
+                                    style={{
+                                      padding: '12px 15px',
+                                      cursor: 'pointer',
+                                      borderBottom: index < searchResults.length - 1 ? '1px solid #eee' : 'none',
+                                      transition: 'background-color 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                  >
+                                    <div style={{ fontWeight: '500', marginBottom: '4px', fontSize: '14px' }}>
+                                      {result.display_name.split(',')[0]}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#666' }}>
+                                      {result.display_name}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        {/* 🗺️ GOOGLE MAP SECTION */}
+                        {/* 🗺️ LEAFLET MAP SECTION */}
                         <div className="u-s-m-b-30">
-                          <label className="gl-label">Select Location on Map *</label>
-                          <div style={{ height: '400px', width: '100%', borderRadius: '8px', overflow: 'hidden' }}>
-                            {isLoaded ? (
-                              <GoogleMap
-                                mapContainerStyle={{ width: '100%', height: '100%' }}
-                                center={selectedLocation}
-                                zoom={13}
-                                onClick={handleMapClick}
-                              >
-                                <Marker position={selectedLocation} />
-                              </GoogleMap>
-                            ) : (
-                              <p>Loading map...</p>
-                            )}
+                          <label className="gl-label">Vị trí trên bản đồ</label>
+                          <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
+                            Tọa độ: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                          </p>
+                          <div style={{ height: '400px', width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' }}>
+                            <MapContainer
+                              center={[selectedLocation.lat, selectedLocation.lng]}
+                              zoom={13}
+                              style={{ height: '100%', width: '100%' }}
+                            >
+                              <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                              />
+                              <Marker position={[selectedLocation.lat, selectedLocation.lng]} />
+                              <ChangeMapView center={[selectedLocation.lat, selectedLocation.lng]} />
+                            </MapContainer>
                           </div>
                         </div>
                         {/* 🗺️ END MAP SECTION */}
