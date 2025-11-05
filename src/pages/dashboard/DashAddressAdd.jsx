@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -14,7 +14,20 @@ L.Icon.Default.mergeOptions({
 // Component để cập nhật center của map
 function ChangeMapView({ center }) {
   const map = useMap();
-  map.setView(center, 15);
+  map.setView(center, 16);
+  return null;
+}
+
+// Component để handle click trên map
+function MapClickHandler({ setPosition }) {
+  useMapEvents({
+    click(e) {
+      setPosition({
+        lat: e.latlng.lat,
+        lng: e.latlng.lng,
+      });
+    },
+  });
   return null;
 }
 
@@ -23,7 +36,8 @@ const DashAddressAdd = () => {
     firstName: '',
     lastName: '',
     phone: '',
-    street: '',
+    houseNumber: '', // Số nhà
+    street: '', // Tên đường/phố
     country: '',
     state: '',
     city: '',
@@ -38,26 +52,22 @@ const DashAddressAdd = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
+    const fieldName = id.replace('address-', '');
     setFormData((prevState) => ({
       ...prevState,
-      [id.replace('address-', '')]: value,
+      [fieldName]: value,
     }));
-
-    // Nếu là input street address thì search
-    if (id === 'address-street') {
-      handleAddressSearch(value);
-    }
   };
 
-  // Debounce function
+  // Debounce search khi nhập tên đường
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (formData.street.length > 2) {
-        searchAddress(formData.street);
+      if (searchQuery.length > 2) {
+        searchAddress(searchQuery);
       } else {
         setSearchResults([]);
         setShowSuggestions(false);
@@ -65,9 +75,10 @@ const DashAddressAdd = () => {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [formData.street]);
+  }, [searchQuery]);
 
-  const handleAddressSearch = (value) => {
+  const handleSearchQueryChange = (value) => {
+    setSearchQuery(value);
     if (value.length > 2) {
       setShowSuggestions(true);
     } else {
@@ -89,7 +100,7 @@ const DashAddressAdd = () => {
         `countrycodes=vn&` + // Chỉ tìm ở Việt Nam
         `format=json&` +
         `addressdetails=1&` +
-        `limit=5&` +
+        `limit=8&` +
         `accept-language=vi`
       );
       
@@ -105,11 +116,16 @@ const DashAddressAdd = () => {
 
   // Chọn địa chỉ từ gợi ý
   const handleSelectAddress = (result) => {
-    const fullAddress = result.display_name;
+    // Lấy tên đường từ kết quả
+    const addressParts = result.display_name.split(',');
+    const streetName = addressParts[0].trim();
     
     setFormData(prev => ({
       ...prev,
-      street: fullAddress
+      street: streetName,
+      city: result.address?.city || result.address?.town || result.address?.village || '',
+      state: result.address?.state || result.address?.province || '',
+      country: result.address?.country || 'Việt Nam'
     }));
     
     setSelectedLocation({
@@ -117,18 +133,24 @@ const DashAddressAdd = () => {
       lng: parseFloat(result.lon)
     });
     
-    setSelectedAddress(fullAddress);
+    setSearchQuery('');
     setShowSuggestions(false);
     setSearchResults([]);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Ghép địa chỉ đầy đủ
+    const fullAddress = `${formData.houseNumber ? formData.houseNumber + ', ' : ''}${formData.street}${formData.city ? ', ' + formData.city : ''}${formData.state ? ', ' + formData.state : ''}`;
+    
     console.log('Form submitted:', { 
       ...formData, 
-      selectedLocation,
-      fullAddress: selectedAddress || formData.street
+      fullAddress,
+      selectedLocation
     });
+    
+    alert('Địa chỉ đã lưu!\n' + fullAddress);
   };
 
   return (
@@ -281,74 +303,108 @@ const DashAddressAdd = () => {
                               required
                             />
                           </div>
-                          <div className="u-s-m-b-30" style={{ position: 'relative' }}>
-                            <label className="gl-label" htmlFor="address-street">
-                              STREET ADDRESS * (Nhập để tìm kiếm)
+                          <div className="u-s-m-b-30">
+                            <label className="gl-label" htmlFor="address-houseNumber">
+                              SỐ NHÀ
                             </label>
                             <input
                               className="input-text input-text--primary-style"
                               type="text"
-                              id="address-street"
-                              placeholder="Nhập địa chỉ để tìm kiếm..."
-                              value={formData.street}
+                              id="address-houseNumber"
+                              placeholder="Ví dụ: 69, 123A, ..."
+                              value={formData.houseNumber}
                               onChange={handleInputChange}
-                              autoComplete="off"
-                              required
                             />
-                            
-                            {/* Dropdown gợi ý địa chỉ */}
-                            {showSuggestions && (
-                              <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                right: 0,
-                                backgroundColor: 'white',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                maxHeight: '300px',
-                                overflowY: 'auto',
-                                zIndex: 1000,
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                                marginTop: '5px'
-                              }}>
-                                {isSearching && (
-                                  <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
-                                    Đang tìm kiếm...
-                                  </div>
-                                )}
-                                
-                                {!isSearching && searchResults.length === 0 && formData.street.length > 2 && (
-                                  <div style={{ padding: '15px', textAlign: 'center', color: '#999' }}>
-                                    Không tìm thấy địa chỉ
-                                  </div>
-                                )}
-                                
-                                {!isSearching && searchResults.map((result, index) => (
-                                  <div
-                                    key={index}
-                                    onClick={() => handleSelectAddress(result)}
-                                    style={{
-                                      padding: '12px 15px',
-                                      cursor: 'pointer',
-                                      borderBottom: index < searchResults.length - 1 ? '1px solid #eee' : 'none',
-                                      transition: 'background-color 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                                  >
-                                    <div style={{ fontWeight: '500', marginBottom: '4px', fontSize: '14px' }}>
-                                      {result.display_name.split(',')[0]}
-                                    </div>
-                                    <div style={{ fontSize: '12px', color: '#666' }}>
-                                      {result.display_name}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
                           </div>
                         </div>
+
+                        {/* Tìm kiếm tên đường */}
+                        <div className="u-s-m-b-30" style={{ position: 'relative' }}>
+                          <label className="gl-label" htmlFor="search-street">
+                            TÌM KIẾM TÊN ĐƯỜNG/PHỐ *
+                          </label>
+                          <input
+                            className="input-text input-text--primary-style"
+                            type="text"
+                            id="search-street"
+                            placeholder="Nhập tên đường, phố để tìm kiếm..."
+                            value={searchQuery}
+                            onChange={(e) => handleSearchQueryChange(e.target.value)}
+                            autoComplete="off"
+                          />
+                          
+                          {/* Dropdown gợi ý địa chỉ */}
+                          {showSuggestions && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '100%',
+                              left: 0,
+                              right: 0,
+                              backgroundColor: 'white',
+                              border: '1px solid #ddd',
+                              borderRadius: '4px',
+                              maxHeight: '300px',
+                              overflowY: 'auto',
+                              zIndex: 1000,
+                              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                              marginTop: '5px'
+                            }}>
+                              {isSearching && (
+                                <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
+                                  Đang tìm kiếm...
+                                </div>
+                              )}
+                              
+                              {!isSearching && searchResults.length === 0 && searchQuery.length > 2 && (
+                                <div style={{ padding: '15px', textAlign: 'center', color: '#999' }}>
+                                  Không tìm thấy địa chỉ
+                                </div>
+                              )}
+                              
+                              {!isSearching && searchResults.map((result, index) => (
+                                <div
+                                  key={index}
+                                  onClick={() => handleSelectAddress(result)}
+                                  style={{
+                                    padding: '12px 15px',
+                                    cursor: 'pointer',
+                                    borderBottom: index < searchResults.length - 1 ? '1px solid #eee' : 'none',
+                                    transition: 'background-color 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                >
+                                  <div style={{ fontWeight: '500', marginBottom: '4px', fontSize: '14px' }}>
+                                    {result.display_name.split(',')[0]}
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#666' }}>
+                                    {result.display_name}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Hiển thị địa chỉ đã chọn */}
+                        {formData.street && (
+                          <div className="u-s-m-b-30">
+                            <label className="gl-label">ĐỊA CHỈ ĐÃ CHỌN</label>
+                            <div style={{
+                              padding: '12px',
+                              backgroundColor: '#f8f9fa',
+                              borderRadius: '4px',
+                              border: '1px solid #e0e0e0'
+                            }}>
+                              <strong>
+                                {formData.houseNumber && `${formData.houseNumber}, `}
+                                {formData.street}
+                              </strong>
+                              {formData.city && <>, {formData.city}</>}
+                              {formData.state && <>, {formData.state}</>}
+                            </div>
+                          </div>
+                        )}
 
                         {/* 🗺️ LEAFLET MAP SECTION */}
                         <div className="u-s-m-b-30">
@@ -364,6 +420,7 @@ const DashAddressAdd = () => {
                               />
                               <Marker position={[selectedLocation.lat, selectedLocation.lng]} />
                               <ChangeMapView center={[selectedLocation.lat, selectedLocation.lng]} />
+                              <MapClickHandler setPosition={setSelectedLocation} />
                             </MapContainer>
                           </div>
                         </div>
