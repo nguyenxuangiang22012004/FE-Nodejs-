@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+
 
 const DashAddressAdd = () => {
-  const [formData, setFormData] = useState({
+ const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     phone: '',
@@ -12,20 +14,35 @@ const DashAddressAdd = () => {
     postalCode: ''
   });
 
+  const [selectedLocation, setSelectedLocation] = useState({
+    lat: 21.028511,
+    lng: 105.804817, // Hà Nội mặc định
+  });
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // dùng key trong .env
+  });
+
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
-      [id.replace('address-', '')]: value
+      [id.replace('address-', '')]: value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission logic here
+    console.log('Form submitted:', { ...formData, selectedLocation });
   };
 
+  // Hàm khi click chọn vị trí trên bản đồ
+  const handleMapClick = useCallback((e) => {
+    setSelectedLocation({
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    });
+  }, []);
   return (
     <>
       {/*====== Section 1 ======*/}
@@ -129,6 +146,7 @@ const DashAddressAdd = () => {
                       <span className="dash__text u-s-m-b-30">
                         We need an address where we could deliver products.
                       </span>
+
                       <form className="dash-address-manipulation" onSubmit={handleSubmit}>
                         <div className="gl-inline">
                           <div className="u-s-m-b-30">
@@ -160,6 +178,7 @@ const DashAddressAdd = () => {
                             />
                           </div>
                         </div>
+
                         <div className="gl-inline">
                           <div className="u-s-m-b-30">
                             <label className="gl-label" htmlFor="address-phone">
@@ -189,7 +208,27 @@ const DashAddressAdd = () => {
                             />
                           </div>
                         </div>
-                        
+
+                        {/* 🗺️ GOOGLE MAP SECTION */}
+                        <div className="u-s-m-b-30">
+                          <label className="gl-label">Select Location on Map *</label>
+                          <div style={{ height: '400px', width: '100%', borderRadius: '8px', overflow: 'hidden' }}>
+                            {isLoaded ? (
+                              <GoogleMap
+                                mapContainerStyle={{ width: '100%', height: '100%' }}
+                                center={selectedLocation}
+                                zoom={13}
+                                onClick={handleMapClick}
+                              >
+                                <Marker position={selectedLocation} />
+                              </GoogleMap>
+                            ) : (
+                              <p>Loading map...</p>
+                            )}
+                          </div>
+                        </div>
+                        {/* 🗺️ END MAP SECTION */}
+
                         <button className="btn btn--e-brand-b-2" type="submit">
                           SAVE
                         </button>
