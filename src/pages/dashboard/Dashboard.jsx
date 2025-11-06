@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
-
+import DashboardStats from '../../components/dashboard/DashboardStats';
 const Dashboard = () => {
   return (
     <>
@@ -32,6 +32,7 @@ const Dashboard = () => {
               <div className="row">
                 <div className="col-lg-3 col-md-12">
                   <DashboardSidebar />
+                   <DashboardStats />
                 </div>
 
                 <div className="col-lg-9 col-md-12">

@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
-
+import DashboardStats from '../../components/dashboard/DashboardStats';
 const DashAddressMakeDefault = () => {
   return (
     <>
@@ -35,6 +35,7 @@ const DashAddressMakeDefault = () => {
               <div className="row">
                 <div className="col-lg-3 col-md-12">
                   <DashboardSidebar activePage="address-book" />
+                   <DashboardStats />
                 </div>
                 <div className="col-lg-9 col-md-12">
                   <form className="dash__address-make">

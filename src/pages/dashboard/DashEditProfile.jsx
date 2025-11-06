@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import { useLocation } from 'react-router-dom';
 import { updateUserProfile } from "../../services/DashboardService";
-
+import DashboardStats from '../../components/dashboard/DashboardStats';
 const DashEditProfile = () => {
   const location = useLocation();
   const userData = location.state?.user;
@@ -80,6 +80,7 @@ const DashEditProfile = () => {
               <div className="row">
                 <div className="col-lg-3 col-md-12">
                   <DashboardSidebar />
+                   <DashboardStats />
                 </div>
 
                 <div className="col-lg-9 col-md-12">

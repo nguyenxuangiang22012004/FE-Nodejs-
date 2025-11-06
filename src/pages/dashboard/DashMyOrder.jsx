@@ -1,7 +1,7 @@
 import React from 'react';
-import DashSidebar from '../../components/dashboard/DashboardSidebar';
 import OrderList from '../../components/dashboard/OrderList';
-
+import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
+import DashboardStats from '../../components/dashboard/DashboardStats';
 const DashMyOrder = () => {
   // Dữ liệu đơn hàng mẫu
   const orders = [
@@ -81,11 +81,8 @@ const DashMyOrder = () => {
             <div className="container">
               <div className="row">
                 <div className="col-lg-3 col-md-12">
-                  <DashSidebar 
-                    userName="John Doe"
-                    activePage="my-order"
-                    stats={stats}
-                  />
+                  <DashboardSidebar activePage="address-book" />
+                   <DashboardStats />
                 </div>
                 <div className="col-lg-9 col-md-12">
                   <div className="dash__box dash__box--shadow dash__box--radius dash__box--bg-white u-s-m-b-30">

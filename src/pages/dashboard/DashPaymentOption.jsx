@@ -36,7 +36,7 @@ const DashPaymentOption = () => {
               <div className="row">
                 <div className="col-lg-3 col-md-12">
                   <DashboardSidebar activePage="payment-option" />
-                  {/* <DashboardStats /> */}
+                  <DashboardStats />
                 </div>
                 <div className="col-lg-9 col-md-12">
                   <div className="dash__box dash__box--shadow dash__box--radius dash__box--bg-white">
