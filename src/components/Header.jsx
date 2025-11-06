@@ -120,44 +120,19 @@ const Header = () => {
                           </Link>
                         </li>
                         <li>
-                          <a href="signup.html">
+                         <Link to="/register">
                             <i className="fas fa-user-plus u-s-m-r-6"></i>
-                            <span>Signup</span>
-                          </a>
+                            <span>Register</span>
+                           </Link>
                         </li>
                         <li>
-                          <a href="signin.html">
+                           <Link to="/login">
                             <i className="fas fa-lock u-s-m-r-6"></i>
-                            <span>Signin</span>
-                          </a>
+                            <span>Login</span>
+                           </Link>
                         </li>
                       </ul>
                     )}
-                  </li>
-                  <li className="has-dropdown" data-tooltip="tooltip" data-placement="left" title="Settings">
-                    <a><i className="fas fa-user-cog"></i></a>
-                    <span className="js-menu-toggle"></span>
-                    <ul style={{ width: '120px' }}>
-                      <li className="has-dropdown has-dropdown--ul-right-100">
-                        <a>Language<i className="fas fa-angle-down u-s-m-l-6"></i></a>
-                        <span className="js-menu-toggle"></span>
-                        <ul style={{ width: '120px' }}>
-                          <li><a className="u-c-brand">ENGLISH</a></li>
-                          <li><a>ARABIC</a></li>
-                          <li><a>FRANCAIS</a></li>
-                          <li><a>ESPANOL</a></li>
-                        </ul>
-                      </li>
-                      <li className="has-dropdown has-dropdown--ul-right-100">
-                        <a>Currency<i className="fas fa-angle-down u-s-m-l-6"></i></a>
-                        <span className="js-menu-toggle"></span>
-                        <ul style={{ width: '225px' }}>
-                          <li><a className="u-c-brand">$ - US DOLLAR</a></li>
-                          <li><a>£ - BRITISH POUND STERLING</a></li>
-                          <li><a>€ - EURO</a></li>
-                        </ul>
-                      </li>
-                    </ul>
                   </li>
                   <li data-tooltip="tooltip" data-placement="left" title="Contact">
                     <a href="tel:+0900901904"><i className="fas fa-phone-volume"></i></a>
