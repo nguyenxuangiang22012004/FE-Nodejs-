@@ -5,21 +5,29 @@ import ProductImages from "../components/productdetail/ProductImages";
 import ProductInfo from "../components/productdetail/ProductInfo";
 import ProductTabs from "../components/productdetail/ProductTabs";
 import RelatedProducts from "../components/productdetail/RelatedProducts";
-import {getProductDetail} from "../services/NewArrivalService";
+import { getProductDetail, getProductImages } from "../services/NewArrivalService";
 const ProductDetail = () => {
   const [product, setProduct] = useState();
+   const [images, setImages] = useState([]);
   const { id } = useParams(); 
   const [quantity, setQuantity] = useState(1);
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getProductDetail(id);
-        setProduct(res.data || res); 
+        // gọi song song 2 API
+        const [productRes, imageRes] = await Promise.all([
+          getProductDetail(id),
+          getProductImages(id),
+        ]);
+
+        setProduct(productRes.data || productRes);
+        setImages(imageRes.data || imageRes);
       } catch (error) {
-        console.error("Failed to fetch product detail:", error);
-      } 
+        console.error("❌ Failed to fetch product detail or images:", error);
+      }
     };
-    fetchProduct();
+
+    fetchData();
   }, [id]);
 
 
@@ -35,7 +43,7 @@ const ProductDetail = () => {
           <div className="row">
             <div className="col-lg-5">
               <ProductBreadcrumb />
-              <ProductImages />
+              <ProductImages images={images} />
             </div>
             <div className="col-lg-7">
               <ProductInfo

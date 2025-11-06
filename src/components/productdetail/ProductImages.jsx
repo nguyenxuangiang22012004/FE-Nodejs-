@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ProductImages = ({ images = [] }) => {
   const [selectedImage, setSelectedImage] = useState(0);
+  const [productImages, setProductImages] = useState([]);
 
-  // Dữ liệu mẫu nếu không có images truyền vào
   const defaultImages = [
     { id: 1, url: '/images/product/product-d-1.jpg', alt: 'Nikon Camera - View 1' },
     { id: 2, url: '/images/product/product-d-2.jpg', alt: 'Nikon Camera - View 2' },
@@ -12,16 +12,28 @@ const ProductImages = ({ images = [] }) => {
     { id: 5, url: '/images/product/product-d-5.jpg', alt: 'Nikon Camera - View 5' },
   ];
 
-  const productImages = images.length > 0 ? images : defaultImages;
+  useEffect(() => {
+    if (images && images.length > 0) {
+      // ✅ Chuẩn hóa dữ liệu
+      const normalized = images.map((img, index) => ({
+        id: img.id || index,
+        url: img.url || img.imageUrl || img.src || '', // hỗ trợ nhiều key
+        alt: img.alt || `Product image ${index + 1}`,
+      }));
+      setProductImages(normalized);
+    } else {
+      setProductImages(defaultImages);
+    }
+  }, [images]);
 
   const handlePrevious = () => {
-    setSelectedImage((prev) => 
+    setSelectedImage((prev) =>
       prev === 0 ? productImages.length - 1 : prev - 1
     );
   };
 
   const handleNext = () => {
-    setSelectedImage((prev) => 
+    setSelectedImage((prev) =>
       prev === productImages.length - 1 ? 0 : prev + 1
     );
   };
@@ -29,6 +41,11 @@ const ProductImages = ({ images = [] }) => {
   const handleThumbnailClick = (index) => {
     setSelectedImage(index);
   };
+
+  if (!productImages || productImages.length === 0) {
+    console.warn('⚠️ productImages trống hoặc chưa set!');
+    return <div>Đang tải hình ảnh...</div>;
+  }
 
   return (
     <div className="w-full">
