@@ -28,10 +28,66 @@ const Signup = () => {
     setFormData({ ...formData, birthday: birthdayString });
   };
 
+  // 🔹 Validate data trước khi gọi API
+  const validateForm = () => {
+    const { firstName, lastName, birthday, gender, email, password } = formData;
+
+    if (!firstName || !lastName || !email || !password) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Fields ⚠️',
+        text: 'Please fill in all required fields.',
+      });
+      return false;
+    }
+
+    if (!birthday || birthday.split('-').length !== 3) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Birthday 🎂',
+        text: 'Please select a valid date of birth.',
+      });
+      return false;
+    }
+
+    if (!gender) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Gender Required 🚻',
+        text: 'Please select your gender.',
+      });
+      return false;
+    }
+
+    // Regex kiểm tra định dạng email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Email 📧',
+        text: 'Please enter a valid email address.',
+      });
+      return false;
+    }
+
+    // Kiểm tra độ mạnh của mật khẩu
+    if (password.length < 6) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Weak Password 🔒',
+        text: 'Password must be at least 6 characters long.',
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!validateForm()) return; // ⛔ nếu sai thì dừng tại đây
 
+    setLoading(true);
     try {
       await register(formData);
       Swal.fire({

@@ -1,82 +1,120 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { login, loginWithGoogle, loginWithFacebook } from '../services/AuthService';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const SignIn = () => {
-  const [email, setEmail] = useState('');
+   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
+
 
   useEffect(() => {
     if (location.state?.error) {
-      setError(location.state.error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error ❌',
+        text: location.state.error,
+      });
     }
   }, [location]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setFieldErrors({ email: '', password: '' });
-
+  // 🔹 Validate form trước khi login
+  const validateForm = () => {
     const newErrors = {};
     if (!email.trim()) newErrors.email = 'Email không được để trống';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Email không hợp lệ';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      newErrors.email = 'Email không hợp lệ';
+
     if (!password.trim()) newErrors.password = 'Mật khẩu không được để trống';
 
     if (Object.keys(newErrors).length > 0) {
       setFieldErrors(newErrors);
-      return;
+
+      // Hiển thị Swal thông báo lỗi tổng quát
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Failed ⚠️',
+        html: `
+          <ul style="text-align:left; margin:0; padding:0 20px;">
+            ${Object.values(newErrors)
+              .map((err) => `<li>${err}</li>`)
+              .join('')}
+          </ul>
+        `,
+      });
+      return false;
     }
+    return true;
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setFieldErrors({});
+    if (!validateForm()) return; // ⛔ dừng nếu validate lỗi
 
     setLoading(true);
     try {
       const user = await login(email, password);
       window.dispatchEvent(new Event('auth-changed'));
+      Swal.fire({
+        icon: 'success',
+        title: 'Welcome back! 🎉',
+        text: `Đăng nhập thành công.`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
       navigate('/?reload=true', { replace: true });
     } catch (err) {
       console.error('Login error:', err);
-      // Nếu backend trả lỗi cụ thể
+
       if (err.field) {
-        setFieldErrors(prev => ({ ...prev, [err.field]: err.message }));
-      } else {
-        setError(err.message || 'Đăng nhập thất bại');
+        setFieldErrors((prev) => ({ ...prev, [err.field]: err.message }));
       }
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Đăng nhập thất bại ❌',
+        text: err.message || 'Email hoặc mật khẩu không đúng.',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Xử lý đăng nhập Google
+  // 🔹 Google login
   const handleGoogleLogin = () => {
     try {
       setLoading(true);
       loginWithGoogle();
     } catch (err) {
-      setError(err.message || 'Không thể đăng nhập bằng Google');
+      Swal.fire({
+        icon: 'error',
+        title: 'Google Login Failed ❌',
+        text: err.message || 'Không thể đăng nhập bằng Google',
+      });
       setLoading(false);
     }
   };
 
-  // Xử lý đăng nhập Facebook
+  // 🔹 Facebook login
   const handleFacebookLogin = () => {
     try {
       setLoading(true);
       loginWithFacebook();
     } catch (err) {
-      setError(err.message || 'Không thể đăng nhập bằng Facebook');
+      Swal.fire({
+        icon: 'error',
+        title: 'Facebook Login Failed ❌',
+        text: err.message || 'Không thể đăng nhập bằng Facebook',
+      });
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (error) {
-      alert(error);
-    }
-  }, [error]);
 
   return (
     <>
