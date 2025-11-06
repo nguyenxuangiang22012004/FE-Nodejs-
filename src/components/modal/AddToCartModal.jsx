@@ -43,85 +43,86 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
       ];
 
   const handleConfirm = async () => {
-    if (!selectedSize || !selectedColor) {
+  if (!selectedSize || !selectedColor) {
+    MySwal.fire({
+      icon: 'warning',
+      title: 'Chọn thiếu!',
+      text: 'Vui lòng chọn đầy đủ size và màu trước khi thêm vào giỏ hàng.',
+      timer: 1500,
+    });
+    onClose(); 
+    return;
+  }
+
+  const selectedVariant = productDetail?.productVariants?.find(
+    (v) =>
+      v.size?.toLowerCase() === selectedSize.toLowerCase() &&
+      v.color?.toLowerCase() === selectedColor.toLowerCase()
+  );
+
+  if (!selectedVariant) {
+    MySwal.fire({
+      icon: 'error',
+      title: 'Không tìm thấy biến thể!',
+      text: 'Vui lòng chọn lại màu và size khác.',
+    });
+    onClose(); 
+    return;
+  }
+
+  const variantId = selectedVariant.id;
+
+  try {
+    const res = await addToCart(variantId, quantity);
+    if (res.success) {
       MySwal.fire({
-        icon: 'warning',
-        title: 'Chọn thiếu!',
-        text: 'Vui lòng chọn đầy đủ size và màu trước khi thêm vào giỏ hàng.',
-        timer: 1500,
+        icon: 'success',
+        title: 'Đã thêm vào giỏ hàng!',
+        html: `
+          <div style="text-align:left; font-size:15px; margin-top:10px">
+            <b>Sản phẩm:</b> ${product.name}<br/>
+            <b>Màu sắc:</b> ${selectedColor}<br/>
+            <b>Kích cỡ:</b> ${selectedSize}<br/>
+            <b>Số lượng:</b> ${quantity}<br/>
+            <b>Tổng cộng:</b> ${new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+            }).format(product.price * quantity)}
+          </div>
+        `,
+        timer: 1800,
+        showConfirmButton: false,
       });
-      return;
-    }
 
-    // tìm variant phù hợp
-    const selectedVariant = productDetail?.productVariants?.find(
-      (v) =>
-        v.size?.toLowerCase() === selectedSize.toLowerCase() &&
-        v.color?.toLowerCase() === selectedColor.toLowerCase()
-    );
-
-    if (!selectedVariant) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Không tìm thấy biến thể!',
-        text: 'Vui lòng chọn lại màu và size khác.',
-      });
-      return;
-    }
-
-    const variantId = selectedVariant.id;
-
-    try {
-      const res = await addToCart(variantId, quantity);
-      console.log(res);
-      if (res.success) {
-        MySwal.fire({
-          icon: 'success',
-          title: 'Đã thêm vào giỏ hàng!',
-          html: `
-            <div style="text-align:left; font-size:15px; margin-top:10px">
-              <b>Sản phẩm:</b> ${product.name}<br/>
-              <b>Màu sắc:</b> ${selectedColor}<br/>
-              <b>Kích cỡ:</b> ${selectedSize}<br/>
-              <b>Số lượng:</b> ${quantity}<br/>
-              <b>Tổng cộng:</b> ${new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-          }).format(product.price * quantity)}
-            </div>
-          `,
-          showConfirmButton: false,
-          timer: 1800,
-        });
-
-        if (onConfirmAddToCart) {
-          const cartItem = {
-            ...product,
-            selectedSize,
-            selectedColor,
-            quantity,
-            variantId,
-          };
-          onConfirmAddToCart(cartItem);
-        }
-
-        onClose();
-      } else {
-        MySwal.fire({
-          icon: 'error',
-          title: 'Thêm thất bại!',
-          text: res.message || 'Vui lòng thử lại.',
-        });
+      if (onConfirmAddToCart) {
+        const cartItem = {
+          ...product,
+          selectedSize,
+          selectedColor,
+          quantity,
+          variantId,
+        };
+        onConfirmAddToCart(cartItem);
       }
-    } catch (error) {
-      console.error('❌ Add to cart failed:', error);
+    } else {
       MySwal.fire({
         icon: 'error',
-        title: 'Lỗi kết nối!',
-        text: 'Không thể kết nối tới máy chủ.',
+        title: 'Thêm thất bại!',
+        text: res.message || 'Vui lòng thử lại.',
       });
     }
-  };
+  } catch (error) {
+    console.error('❌ Add to cart failed:', error);
+    MySwal.fire({
+      icon: 'error',
+      title: 'Lỗi kết nối!',
+      text: 'Không thể kết nối tới máy chủ.',
+    });
+  } finally {
+    // ✅ Dù thành công hay lỗi cũng đóng modal
+    onClose();
+  }
+};
 
 
 
