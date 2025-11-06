@@ -51,9 +51,9 @@ const Header = () => {
         <div className="container">
           <div className="primary-nav">
             {/* Main Logo */}
-            <a className="main-logo" href="index.html">
+            <Link className="main-logo" to="/">
               <img src="images/logo/logo-1.png" alt="Ludus" />
-            </a>
+            </Link>
 
             {/* Search Form */}
             <form className="main-form" onSubmit={handleSearch}>
@@ -120,16 +120,16 @@ const Header = () => {
                           </Link>
                         </li>
                         <li>
-                         <Link to="/register">
+                          <Link to="/register">
                             <i className="fas fa-user-plus u-s-m-r-6"></i>
                             <span>Register</span>
-                           </Link>
+                          </Link>
                         </li>
                         <li>
-                           <Link to="/login">
+                          <Link to="/login">
                             <i className="fas fa-lock u-s-m-r-6"></i>
                             <span>Login</span>
-                           </Link>
+                          </Link>
                         </li>
                       </ul>
                     )}
