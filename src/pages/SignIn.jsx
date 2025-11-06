@@ -61,13 +61,13 @@ const SignIn = () => {
     try {
       const user = await login(email, password);
       window.dispatchEvent(new Event('auth-changed'));
-      Swal.fire({
-        icon: 'success',
-        title: 'Welcome back! 🎉',
-        text: `Đăng nhập thành công.`,
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      // Swal.fire({
+      //   icon: 'success',
+      //   title: 'Welcome back! 🎉',
+      //   text: `Đăng nhập thành công.`,
+      //   timer: 1500,
+      //   showConfirmButton: false,
+      // });
       navigate('/?reload=true', { replace: true });
     } catch (err) {
       console.error('Login error:', err);

@@ -8,7 +8,9 @@ const ProductInfo = ({ product = {}, quantity, onQuantityChange, onAddToCart }) 
       </div>
       <div>
         <div className="pd-detail__inline">
-          <span className="pd-detail__price">${product.price}</span>
+          <span className="pd-detail__price">
+            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+          </span>
           <span className="pd-detail__discount">({product.discountedPrice}% OFF)</span>
           <del className="pd-detail__del">${product.originalPrice}</del>
         </div>

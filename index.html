@@ -1,32 +1,53 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-     <link rel="stylesheet" href="/css/vendor.css" >
-    <link rel="stylesheet" href="/css/utility.css">
-    <link rel="stylesheet" href="/css/app.css">
-    <link rel="stylesheet" href="/css/custom.css">
-    <link href="/images/favicon.png" rel="shortcut icon" onerror="this.remove();">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>luduss-project</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
-     <script src="/js/vendor.js"></script>
+<head>
+  <meta charset="UTF-8" />
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
 
-    <!--====== jQuery Shopnav plugin ======-->
-    <script src="/js/jquery.shopnav.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <!--====== App ======-->
-    <script src="/js/app.js"></script>
-  </body>
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="stylesheet" href="/css/vendor.css">
+  <link rel="stylesheet" href="/css/utility.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/custom.css">
+  <link href="/images/favicon.png" rel="shortcut icon" onerror="this.remove();">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>luduss-project</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    // Ép toàn cục: chặn mọi click vào link nội bộ có .html
+    document.addEventListener("click", function (e) {
+      const link = e.target.closest("a");
+      if (!link) return;
+
+      const href = link.getAttribute("href");
+      if (!href) return;
+
+      // Nếu link có .html → đổi sang path tương ứng React Router
+      if (href.endsWith(".html")) {
+        e.preventDefault();
+        const newPath = href.replace(".html", "");
+        window.history.pushState({}, "", newPath);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
+    });
+  </script>
+  <script type="module" src="/src/main.jsx"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+  <script src="/js/vendor.js"></script>
+
+  <!--====== jQuery Shopnav plugin ======-->
+  <script src="/js/jquery.shopnav.js"></script>
+
+  <!--====== App ======-->
+  <script src="/js/app.js"></script>
+</body>
+
 </html>

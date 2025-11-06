@@ -1,36 +1,38 @@
-import React from 'react';
+import React from "react";
+import { NavLink } from "react-router-dom";
 
 const DashboardSidebar = ({ activePage }) => {
+
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const userName = user.lastName || "User";
+   const linkItems = [
+    { to: "/dashboard/", label: "Manage My Account", key: "dashboard" },
+    { to: "/dashboard/dash-my-profile", label: "My Profile", key: "profile" },
+    { to: "/dashboard/dash-address-book", label: "Address Book", key: "address-book" },
+    { to: "/dashboard/dash-track-order", label: "Track Order", key: "track-order" },
+    { to: "/dashboard/dash-my-order", label: "My Orders", key: "my-orders" },
+    { to: "/dashboard/dash-payment-option", label: "My Payment Options", key: "payment-option" },
+    { to: "/dashboard/dash-cancellation", label: "My Returns & Cancellations", key: "cancellation" },
+  ];
   return (
     <>
-      {/*====== Dashboard Features ======*/}
-      <div className="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+       <div className="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
         <div className="dash__pad-1">
-          <span className="dash__text u-s-m-b-16">Hello, John Doe</span>
+          <span className="dash__text u-s-m-b-16">Hello, {userName}</span>
           <ul className="dash__f-list">
-            <li>
-              <a href="dashboard.html">Manage My Account</a>
-            </li>
-            <li>
-              <a href="dash-my-profile.html">My Profile</a>
-            </li>
-            <li>
-              <a className={activePage === 'address-book' ? 'dash-active' : ''} href="dash-address-book.html">
-                Address Book
-              </a>
-            </li>
-            <li>
-              <a href="dash-track-order.html">Track Order</a>
-            </li>
-            <li>
-              <a href="dash-my-order.html">My Orders</a>
-            </li>
-            <li>
-              <a href="dash-payment-option.html">My Payment Options</a>
-            </li>
-            <li>
-              <a href="dash-cancellation.html">My Returns & Cancellations</a>
-            </li>
+            {linkItems.map((item) => (
+              <li key={item.key}>
+                <NavLink
+                  to={item.to}
+                  className={({ isActive }) =>
+                    isActive || activePage === item.key ? "dash-active" : ""
+                  }
+                  end
+                >
+                  {item.label}
+                </NavLink>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
