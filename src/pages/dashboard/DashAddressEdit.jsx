@@ -331,7 +331,7 @@ const DashAddressEdit = ({ addressId }) => {
                           </div>
                           <div className="u-s-m-b-30">
                             <label className="gl-label" htmlFor="address-houseNumber">
-                              SỐ NHÀ
+                              NUMBER HOME
                             </label>
                             <input
                               className="input-text input-text--primary-style"
@@ -347,7 +347,7 @@ const DashAddressEdit = ({ addressId }) => {
                         {/* Tìm kiếm tên đường */}
                         <div className="u-s-m-b-30" style={{ position: 'relative' }}>
                           <label className="gl-label" htmlFor="search-street">
-                            TÌM KIẾM TÊN ĐƯỜNG/PHỐ *
+                            SEARCH STREET NAME *
                           </label>
                           <input
                             className="input-text input-text--primary-style"
@@ -415,7 +415,7 @@ const DashAddressEdit = ({ addressId }) => {
                         {/* Hiển thị địa chỉ đã chọn */}
                         {formData.address && (
                           <div className="u-s-m-b-30">
-                            <label className="gl-label">ĐỊA CHỈ ĐÃ CHỌN</label>
+                            <label className="gl-label">SELECTED ADDRESS</label>
                             <div style={{
                               padding: '12px',
                               backgroundColor: '#f8f9fa',

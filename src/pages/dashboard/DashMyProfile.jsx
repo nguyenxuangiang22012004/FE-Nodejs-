@@ -98,7 +98,7 @@ const DashMyProfile = () => {
               <div className="row">
                 {/* Sidebar */}
                 <div className="col-lg-3 col-md-12">
-                  <DashboardSidebar activePage="address-book" />
+                  <DashboardSidebar activePage="profile" />
                    <DashboardStats />
                 </div>
 
