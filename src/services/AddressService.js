@@ -31,3 +31,8 @@ export const updateUserAddress = async (id , data) => {
   const res = await api.put(`/address/${id}`,data);
   return res;
 };
+
+export const setDefaultAddress = async (id ) => {
+  const res = await api.patch(`/address/${id}`);
+  return res;
+};

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import DashboardStats from '../../components/dashboard/DashboardStats';
-import { getUserAddresses } from "../../services/AddressService";
+import { getUserAddresses, setDefaultAddress } from "../../services/AddressService";
 import { Link } from "react-router-dom";
 const DashAddressBook = () => {
     const [addresses, setAddresses] = useState([]);
@@ -23,13 +23,18 @@ const DashAddressBook = () => {
         fetchAddresses();
     }, []);
 
-    const handleDefaultChange = (id) => {
-        setAddresses((prev) =>
-            prev.map((addr) => ({
-                ...addr,
-                isDefault: addr.id === id,
-            }))
-        );
+    const handleDefaultChange = async (id) => {
+        try {
+           await setDefaultAddress(id);
+            setAddresses((prev) =>
+                prev.map((addr) => ({
+                    ...addr,
+                    isDefault: addr.id === id, 
+                }))
+            );
+        } catch (err) {
+            console.error(err);
+        }
     };
     return (
         <>
