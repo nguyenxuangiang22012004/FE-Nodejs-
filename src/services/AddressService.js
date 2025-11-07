@@ -26,3 +26,8 @@ export const getUserAddressById = async (id) => {
   const res = await api.get(`/address/${id}`);
   return res;
 };
+
+export const updateUserAddress = async (id , data) => {
+  const res = await api.put(`/address/${id}`,data);
+  return res;
+};

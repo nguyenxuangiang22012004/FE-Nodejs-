@@ -5,7 +5,7 @@ import L from 'leaflet';
 import { useParams } from "react-router-dom";
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import DashboardStats from '../../components/dashboard/DashboardStats';
-import { getUserAddressById } from "../../services/AddressService";
+import { getUserAddressById ,updateUserAddress } from "../../services/AddressService";
 import Swal from "sweetalert2";
 
 // Fix cho icon marker mặc định của Leaflet
@@ -205,8 +205,6 @@ const DashAddressEdit = ({ addressId }) => {
     const fullAddress = formData.houseNumber
       ? `${formData.houseNumber}, ${formData.address || formData.street}`
       : formData.address || formData.street;
-
-    const id = addressId || new URLSearchParams(window.location.search).get('id');
 
     const payload = {
       ...formData,
