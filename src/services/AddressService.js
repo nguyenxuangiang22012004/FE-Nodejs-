@@ -36,3 +36,8 @@ export const setDefaultAddress = async (id ) => {
   const res = await api.patch(`/address/${id}`);
   return res;
 };
+
+export const deleteUserAddress = async (id ) => {
+  const res = await api.delete(`/address/${id}`);
+  return res;
+};

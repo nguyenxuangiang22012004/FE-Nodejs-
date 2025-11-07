@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import DashboardStats from '../../components/dashboard/DashboardStats';
-import { getUserAddresses, setDefaultAddress } from "../../services/AddressService";
+import { getUserAddresses, setDefaultAddress ,deleteUserAddress  } from "../../services/AddressService";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 const DashAddressBook = () => {
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,15 +26,45 @@ const DashAddressBook = () => {
 
     const handleDefaultChange = async (id) => {
         try {
-           await setDefaultAddress(id);
+            await setDefaultAddress(id);
             setAddresses((prev) =>
                 prev.map((addr) => ({
                     ...addr,
-                    isDefault: addr.id === id, 
+                    isDefault: addr.id === id,
                 }))
             );
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const handleDeleteAddress = async (id) => {
+        const confirm = await Swal.fire({
+            title: "Bạn có chắc muốn xoá?",
+            text: "Thao tác này không thể hoàn tác!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Xoá",
+            cancelButtonText: "Hủy",
+        });
+
+        if (confirm.isConfirmed) {
+            try {
+                await deleteUserAddress(id);
+                setAddresses((prev) => prev.filter((addr) => addr.id !== id));
+                Swal.fire({
+                    icon: "success",
+                    title: "Đã xoá địa chỉ thành công!",
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    icon: "error",
+                    title: "Xoá địa chỉ thất bại!",
+                });
+            }
         }
     };
     return (
@@ -94,7 +125,7 @@ const DashAddressBook = () => {
                                                         <th>Full Name</th>
                                                         <th>Address</th>
                                                         <th>Phone Number</th>
-
+                                                        <th>Delete</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -118,7 +149,22 @@ const DashAddressBook = () => {
                                                             <td>{`${addr.firstName || ""} ${addr.lastName || ""}`.trim()}</td>
                                                             <td>{addr.location}</td>
                                                             <td>{addr.phoneNumber}</td>
-
+                                                            <td>
+                                                                <button
+                                                                    onClick={() => handleDeleteAddress(addr.id)}
+                                                                    className="btn--e-transparent-platinum-b-2"
+                                                                    title="Delete address"
+                                                                    style={{
+                                                                        color: "red",
+                                                                        border: "none",
+                                                                        background: "transparent",
+                                                                        cursor: "pointer",
+                                                                        fontSize: "18px",
+                                                                    }}
+                                                                >
+                                                                    <i className="fas fa-trash"></i>
+                                                                </button>
+                                                            </td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
