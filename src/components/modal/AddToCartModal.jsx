@@ -104,6 +104,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         };
         onConfirmAddToCart(cartItem);
       }
+      window.dispatchEvent(new Event("cartUpdated"));
     } else {
       MySwal.fire({
         icon: 'error',

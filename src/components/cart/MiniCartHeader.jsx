@@ -8,45 +8,53 @@ const MiniCartHeader = () => {
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
-    const fetchCartData = async () => {
-      try {
-        const res = await getCart();
-        const items = Array.isArray(res?.cartDetails) ? res.cartDetails : [];
+  const fetchCartData = async () => {
+    try {
+      const res = await getCart();
+      const items = Array.isArray(res?.cartDetails) ? res.cartDetails : [];
 
-        const itemsWithDetails = await Promise.all(
-          items.map(async (item) => {
-            const idProduct = item.productVariant?.productId;
-            const baseItem = {
-              id: item.id,
-              productVariantId: item.productVariantId,
-              idProduct,
-              quantity: item.quantity,
-              price: item.unitPrice,
-              color: item.productVariant?.color || "N/A",
-              size: item.productVariant?.size || "N/A",
-              image: item.productVariant?.variantImageUrl || "/images/default.jpg",
-            };
+      const itemsWithDetails = await Promise.all(
+        items.map(async (item) => {
+          const idProduct = item.productVariant?.productId;
+          const baseItem = {
+            id: item.id,
+            productVariantId: item.productVariantId,
+            idProduct,
+            quantity: item.quantity,
+            price: item.unitPrice,
+            color: item.productVariant?.color || "N/A",
+            size: item.productVariant?.size || "N/A",
+            image: item.productVariant?.variantImageUrl || "/images/default.jpg",
+          };
 
-            try {
-              const productRes = await getProductDetail(idProduct);
-              const productName = productRes?.data?.name || "Unnamed Product";
-              return { ...baseItem, productName };
-            } catch (err) {
-              console.error(`Error fetching product ${idProduct}:`, err);
-              return { ...baseItem, productName: "Unknown Product" };
-            }
-          })
-        );
+          try {
+            const productRes = await getProductDetail(idProduct);
+            const productName = productRes?.data?.name || "Unnamed Product";
+            return { ...baseItem, productName };
+          } catch (err) {
+            console.error(`Error fetching product ${idProduct}:`, err);
+            return { ...baseItem, productName: "Unknown Product" };
+          }
+        })
+      );
 
-        setCartItems(itemsWithDetails);
-      } catch (error) {
-        console.error("Error fetching cart:", error);
-        setCartItems([]);
-      }
-    };
+      setCartItems(itemsWithDetails);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      setCartItems([]);
+    }
+  };
 
-    fetchCartData();
-  }, []);
+  fetchCartData();
+
+  const handleCartUpdated = () => fetchCartData();
+  window.addEventListener("cartUpdated", handleCartUpdated);
+
+  // 🔹 Cleanup event listener khi unmount
+  return () => {
+    window.removeEventListener("cartUpdated", handleCartUpdated);
+  };
+}, []);
 
   // Giữ nguyên UI, chỉ chỉnh phần xóa có Swal
   const handleDeleteItem = async (id) => {
@@ -121,7 +129,6 @@ const MiniCartHeader = () => {
 
             <div className="mini-cart">
               <div className="mini-product-container gl-scroll u-s-m-b-15">
-                {/* ✅ Render dữ liệu thật từ cartItems */}
                 {cartItems.length > 0 ? (
                   cartItems.map((item) => (
                     <div className="card-mini-product" key={item.id}>
