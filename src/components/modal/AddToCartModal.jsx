@@ -11,13 +11,16 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [productDetail, setProductDetail] = useState(null);
+  const [displayImage, setDisplayImage] = useState('');
   const MySwal = withReactContent(Swal);
   useEffect(() => {
     const fetchProductDetail = async () => {
       if (isOpen && product?.id) {
         try {
           const res = await getProductDetail(product.id);
-          setProductDetail(res.data || res);
+          console.log(res);
+          setProductDetail(res.data);
+          setDisplayImage(res.data.imageUrl);
         } catch (error) {
           console.error("❌ Lỗi khi lấy chi tiết sản phẩm:", error);
         }
@@ -43,87 +46,87 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
       ];
 
   const handleConfirm = async () => {
-  if (!selectedSize || !selectedColor) {
-    MySwal.fire({
-      icon: 'warning',
-      title: 'Chọn thiếu!',
-      text: 'Vui lòng chọn đầy đủ size và màu trước khi thêm vào giỏ hàng.',
-      timer: 1500,
-    });
-    onClose(); 
-    return;
-  }
-
-  const selectedVariant = productDetail?.productVariants?.find(
-    (v) =>
-      v.size?.toLowerCase() === selectedSize.toLowerCase() &&
-      v.color?.toLowerCase() === selectedColor.toLowerCase()
-  );
-
-  if (!selectedVariant) {
-    MySwal.fire({
-      icon: 'error',
-      title: 'Không tìm thấy biến thể!',
-      text: 'Vui lòng chọn lại màu và size khác.',
-    });
-    onClose(); 
-    return;
-  }
-
-  const variantId = selectedVariant.id;
-
-  try {
-    const res = await addToCart(variantId, quantity);
-    if (res.success) {
+    if (!selectedSize || !selectedColor) {
       MySwal.fire({
-        icon: 'success',
-        title: 'Đã thêm vào giỏ hàng!',
-        html: `
+        icon: 'warning',
+        title: 'Chọn thiếu!',
+        text: 'Vui lòng chọn đầy đủ size và màu trước khi thêm vào giỏ hàng.',
+        timer: 1500,
+      });
+      onClose();
+      return;
+    }
+
+    const selectedVariant = productDetail?.productVariants?.find(
+      (v) =>
+        v.size?.toLowerCase() === selectedSize.toLowerCase() &&
+        v.color?.toLowerCase() === selectedColor.toLowerCase()
+    );
+
+    if (!selectedVariant) {
+      MySwal.fire({
+        icon: 'error',
+        title: 'Không tìm thấy biến thể!',
+        text: 'Vui lòng chọn lại màu và size khác.',
+      });
+      onClose();
+      return;
+    }
+
+    const variantId = selectedVariant.id;
+
+    try {
+      const res = await addToCart(variantId, quantity);
+      if (res.success) {
+        MySwal.fire({
+          icon: 'success',
+          title: 'Đã thêm vào giỏ hàng!',
+          html: `
           <div style="text-align:left; font-size:15px; margin-top:10px">
             <b>Sản phẩm:</b> ${product.name}<br/>
             <b>Màu sắc:</b> ${selectedColor}<br/>
             <b>Kích cỡ:</b> ${selectedSize}<br/>
             <b>Số lượng:</b> ${quantity}<br/>
             <b>Tổng cộng:</b> ${new Intl.NumberFormat('vi-VN', {
-              style: 'currency',
-              currency: 'VND',
-            }).format(product.price * quantity)}
+            style: 'currency',
+            currency: 'VND',
+          }).format(product.price * quantity)}
           </div>
         `,
-        timer: 1800,
-        showConfirmButton: false,
-      });
+          timer: 1800,
+          showConfirmButton: false,
+        });
 
-      if (onConfirmAddToCart) {
-        const cartItem = {
-          ...product,
-          selectedSize,
-          selectedColor,
-          quantity,
-          variantId,
-        };
-        onConfirmAddToCart(cartItem);
+        if (onConfirmAddToCart) {
+          const cartItem = {
+            ...product,
+            selectedSize,
+            selectedColor,
+            quantity,
+            variantId,
+          };
+          onConfirmAddToCart(cartItem);
+        }
+        window.dispatchEvent(new Event("cartUpdated"));
+      } else {
+        MySwal.fire({
+          icon: 'error',
+          title: 'Thêm thất bại!',
+          text: res.message || 'Vui lòng thử lại.',
+        });
       }
-      window.dispatchEvent(new Event("cartUpdated"));
-    } else {
+    } catch (error) {
+      console.error('❌ Add to cart failed:', error);
       MySwal.fire({
         icon: 'error',
-        title: 'Thêm thất bại!',
-        text: res.message || 'Vui lòng thử lại.',
+        title: 'Lỗi kết nối!',
+        text: 'Không thể kết nối tới máy chủ.',
       });
+    } finally {
+      // ✅ Dù thành công hay lỗi cũng đóng modal
+      onClose();
     }
-  } catch (error) {
-    console.error('❌ Add to cart failed:', error);
-    MySwal.fire({
-      icon: 'error',
-      title: 'Lỗi kết nối!',
-      text: 'Không thể kết nối tới máy chủ.',
-    });
-  } finally {
-    // ✅ Dù thành công hay lỗi cũng đóng modal
-    onClose();
-  }
-};
+  };
 
 
 
@@ -142,6 +145,30 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
       setQuantity(prev => prev - 1);
     }
   };
+  
+
+  const handleVariantSelect = (type, value) => {
+  if (type === "size") {
+    setSelectedSize(value);
+  } else if (type === "color") {
+    setSelectedColor(value);
+  }
+
+  const variant = productDetail?.productVariants?.find(
+    (v) =>
+      v.size?.toLowerCase() ===
+        (type === "size" ? value.toLowerCase() : selectedSize?.toLowerCase()) &&
+      v.color?.toLowerCase() ===
+        (type === "color" ? value.toLowerCase() : selectedColor?.toLowerCase())
+  );
+
+  if (variant?.variantImageUrl) {
+    setDisplayImage(variant.variantImageUrl);
+  } else {
+    setDisplayImage(productDetail?.imageUrl || product.imageUrl || product.image);
+  }
+};
+
 
   return (
     <>
@@ -155,7 +182,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
             <div className="variant-modal-body">
               <div className="variant-modal-image">
                 <img
-                  src={product.imageUrl || product.image}
+                  src={displayImage}
                   alt={product.name}
                 />
               </div>
@@ -179,7 +206,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                       <button
                         key={size}
                         className={`size-btn ${selectedSize === size ? 'selected' : ''}`}
-                        onClick={() => setSelectedSize(size)}
+                        onClick={() => handleVariantSelect("size", size)}
                       >
                         {size}
                       </button>
@@ -197,7 +224,8 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                       <div
                         key={color.name}
                         className={`color-item ${selectedColor === color.name ? 'selected' : ''}`}
-                        onClick={() => setSelectedColor(color.name)}
+                        onClick={() => handleVariantSelect("color", color.name)}
+
                         style={{ backgroundColor: color.value }}
                         title={color.name}
                       />
