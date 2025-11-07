@@ -15,10 +15,14 @@ export const getUserAddresses = async () => {
 export const addUserAddress = async (addressData) => {
   try {
     const response = await api.post("/address", addressData);
-    console.log(response);
     return response;
   } catch (error) {
     console.error("❌ Lỗi khi thêm địa chỉ:", error);
     throw error.response?.data || error;
   }
+};
+
+export const getUserAddressById = async (id) => {
+  const res = await api.get(`/address/${id}`);
+  return res;
 };

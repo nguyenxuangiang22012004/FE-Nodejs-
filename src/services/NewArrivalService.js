@@ -54,6 +54,5 @@ export const getProductDetail = async (id) => {
 
 export const getProductImages = async (id) => {
   const res = await api.get(`/new-arrivals/product-images/${id}`);
-  console.log("GET",res);
   return res;
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import DashboardStats from '../../components/dashboard/DashboardStats';
 import { getUserAddresses } from "../../services/AddressService";
+import { Link } from "react-router-dom";
 const DashAddressBook = () => {
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -95,12 +96,12 @@ const DashAddressBook = () => {
                                                     {addresses.map((addr) => (
                                                         <tr key={addr.id}>
                                                             <td>
-                                                                <a
+                                                                <Link
                                                                     className="address-book-edit btn--e-transparent-platinum-b-2"
-                                                                    href="/dashboard/dash-address-edit"
+                                                                    to={`/dashboard/dash-address-edit/${addr.id}`}
                                                                 >
                                                                     Edit
-                                                                </a>
+                                                                </Link>
                                                             </td>
                                                             <td>
                                                                 <input
