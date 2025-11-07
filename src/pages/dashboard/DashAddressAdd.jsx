@@ -4,6 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import DashboardStats from '../../components/dashboard/DashboardStats';
+import { addUserAddress } from "../../services/AddressService";
+import Swal from "sweetalert2";
 // Fix cho icon marker mặc định của Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -36,13 +38,9 @@ const DashAddressAdd = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    phone: '',
+    phoneNumber: '',
     houseNumber: '', // Số nhà
     street: '', // Tên đường/phố
-    country: '',
-    state: '',
-    city: '',
-    postalCode: ''
   });
 
   const [selectedLocation, setSelectedLocation] = useState({
@@ -63,6 +61,17 @@ const DashAddressAdd = () => {
       [fieldName]: value,
     }));
   };
+
+
+  // Lấy user từ localStorage khi mở trang
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user")) || {};
+    setFormData((prev) => ({
+      ...prev,
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+    }));
+  }, []);
 
   // Debounce search khi nhập tên đường
   useEffect(() => {
@@ -104,7 +113,7 @@ const DashAddressAdd = () => {
         `limit=8&` +
         `accept-language=vi`
       );
-      
+
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
@@ -117,43 +126,61 @@ const DashAddressAdd = () => {
 
   // Chọn địa chỉ từ gợi ý
   const handleSelectAddress = (result) => {
-    // Lấy tên đường từ kết quả
     const addressParts = result.display_name.split(',');
     const streetName = addressParts[0].trim();
-    
+
     setFormData(prev => ({
       ...prev,
       street: streetName,
+      address: result.display_name, // 🧩 thêm dòng này
       city: result.address?.city || result.address?.town || result.address?.village || '',
       state: result.address?.state || result.address?.province || '',
       country: result.address?.country || 'Việt Nam'
     }));
-    
+
     setSelectedLocation({
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon)
     });
-    
+
     setSearchQuery('');
     setShowSuggestions(false);
     setSearchResults([]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Ghép địa chỉ đầy đủ
-    const fullAddress = `${formData.houseNumber ? formData.houseNumber + ', ' : ''}${formData.street}${formData.city ? ', ' + formData.city : ''}${formData.state ? ', ' + formData.state : ''}`;
-    
-    console.log('Form submitted:', { 
-      ...formData, 
-      fullAddress,
-      selectedLocation
-    });
-    
-    alert('Địa chỉ đã lưu!\n' + fullAddress);
-  };
 
+    const fullAddress = formData.houseNumber
+      ? `${formData.houseNumber}, ${formData.address || formData.street}`
+      : formData.address || formData.street;
+
+      
+    const payload = {
+      ...formData,
+      isDefault: true,
+      location: fullAddress,
+    };
+
+    try {
+      const res = await addUserAddress(payload);
+      Swal.fire({
+        icon: "success",
+        title: "Đã lưu địa chỉ!",
+        text: "Thêm địa chỉ thành công.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      console.log("📦 Address saved:", res);
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi!",
+        text: err.message || "Không thể lưu địa chỉ, vui lòng thử lại.",
+      });
+    }
+  };
   return (
     <>
       {/*====== Section 1 ======*/}
@@ -202,13 +229,13 @@ const DashAddressAdd = () => {
                       <form className="dash-address-manipulation" onSubmit={handleSubmit}>
                         <div className="gl-inline">
                           <div className="u-s-m-b-30">
-                            <label className="gl-label" htmlFor="address-fname">
+                            <label className="gl-label" htmlFor="address-firstName">
                               FIRST NAME *
                             </label>
                             <input
                               className="input-text input-text--primary-style"
                               type="text"
-                              id="address-fname"
+                              id="address-firstName"
                               placeholder="First Name"
                               value={formData.firstName}
                               onChange={handleInputChange}
@@ -216,13 +243,13 @@ const DashAddressAdd = () => {
                             />
                           </div>
                           <div className="u-s-m-b-30">
-                            <label className="gl-label" htmlFor="address-lname">
+                            <label className="gl-label" htmlFor="address-lastName">
                               LAST NAME *
                             </label>
                             <input
                               className="input-text input-text--primary-style"
                               type="text"
-                              id="address-lname"
+                              id="address-lastName"
                               placeholder="Last Name"
                               value={formData.lastName}
                               onChange={handleInputChange}
@@ -233,14 +260,15 @@ const DashAddressAdd = () => {
 
                         <div className="gl-inline">
                           <div className="u-s-m-b-30">
-                            <label className="gl-label" htmlFor="address-phone">
+                            <label className="gl-label" htmlFor="address-phoneNumber">
                               PHONE *
                             </label>
                             <input
                               className="input-text input-text--primary-style"
                               type="text"
-                              id="address-phone"
-                              value={formData.phone}
+                              id="address-phoneNumber"
+                              placeholder="Phone"
+                              value={formData.phoneNumber}
                               onChange={handleInputChange}
                               required
                             />
@@ -274,7 +302,7 @@ const DashAddressAdd = () => {
                             onChange={(e) => handleSearchQueryChange(e.target.value)}
                             autoComplete="off"
                           />
-                          
+
                           {/* Dropdown gợi ý địa chỉ */}
                           {showSuggestions && (
                             <div style={{
@@ -296,13 +324,13 @@ const DashAddressAdd = () => {
                                   Đang tìm kiếm...
                                 </div>
                               )}
-                              
+
                               {!isSearching && searchResults.length === 0 && searchQuery.length > 2 && (
                                 <div style={{ padding: '15px', textAlign: 'center', color: '#999' }}>
                                   Không tìm thấy địa chỉ
                                 </div>
                               )}
-                              
+
                               {!isSearching && searchResults.map((result, index) => (
                                 <div
                                   key={index}
@@ -329,7 +357,7 @@ const DashAddressAdd = () => {
                         </div>
 
                         {/* Hiển thị địa chỉ đã chọn */}
-                        {formData.street && (
+                        {formData.address && (
                           <div className="u-s-m-b-30">
                             <label className="gl-label">ĐỊA CHỈ ĐÃ CHỌN</label>
                             <div style={{
@@ -340,10 +368,8 @@ const DashAddressAdd = () => {
                             }}>
                               <strong>
                                 {formData.houseNumber && `${formData.houseNumber}, `}
-                                {formData.street}
+                                {formData.address}
                               </strong>
-                              {formData.city && <>, {formData.city}</>}
-                              {formData.state && <>, {formData.state}</>}
                             </div>
                           </div>
                         )}
