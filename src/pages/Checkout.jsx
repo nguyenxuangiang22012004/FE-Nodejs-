@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
-
+import React, { useState, useEffect } from 'react';
+import { getPaymentMethods } from '../services/CheckoutService';
 const Checkout = () => {
   const [showReturnCustomer, setShowReturnCustomer] = useState(false);
   const [showCoupon, setShowCoupon] = useState(false);
   const [useDefaultAddress, setUseDefaultAddress] = useState(false);
   const [makeDefaultAddress, setMakeDefaultAddress] = useState(false);
   const [showCreateAccount, setShowCreateAccount] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
-
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [paymentMethod, setPaymentMethod] = useState('');
   const handlePaymentChange = (method) => {
     setPaymentMethod(method);
   };
 
   const handlePlaceOrder = () => {
-    console.log('Placing order with payment method:', paymentMethod);
   };
 
   // Dữ liệu giỏ hàng mẫu
@@ -48,6 +47,19 @@ const Checkout = () => {
       price: 150.00
     }
   ];
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        const res = await getPaymentMethods();
+        setPaymentMethods(res.data);
+      } catch (error) {
+        console.error('Không thể tải danh sách phương thức thanh toán:', error);
+      }
+    };
+
+    fetchPaymentMethods();
+  }, []);
 
   const subtotal = 379.00;
   const shipping = 4.00;
@@ -87,8 +99,8 @@ const Checkout = () => {
                   <div className="msg u-s-m-b-30">
                     <span className="msg__text">
                       Returning customer?{' '}
-                      <button 
-                        className="gl-link" 
+                      <button
+                        className="gl-link"
                         onClick={() => setShowReturnCustomer(!showReturnCustomer)}
                       >
                         Click here to login
@@ -153,8 +165,8 @@ const Checkout = () => {
                   <div className="msg">
                     <span className="msg__text">
                       Have a coupon?{' '}
-                      <button 
-                        className="gl-link" 
+                      <button
+                        className="gl-link"
                         onClick={() => setShowCoupon(!showCoupon)}
                       >
                         Click Here to enter your code
@@ -205,9 +217,9 @@ const Checkout = () => {
                     <div className="u-s-m-b-30">
                       <div className="u-s-m-b-15">
                         <div className="check-box">
-                          <input 
-                            type="checkbox" 
-                            id="get-address" 
+                          <input
+                            type="checkbox"
+                            id="get-address"
                             checked={useDefaultAddress}
                             onChange={(e) => setUseDefaultAddress(e.target.checked)}
                           />
@@ -280,90 +292,21 @@ const Checkout = () => {
                           data-bill=""
                         />
                       </div>
-                      <div className="u-s-m-b-15">
-                        <input
-                          className="input-text input-text--primary-style"
-                          type="text"
-                          id="billing-street-optional"
-                          placeholder="Apartment, suite unit etc. (optional)"
-                          data-bill=""
-                        />
-                      </div>
-
-                      <div className="u-s-m-b-15">
-                        <label className="gl-label" htmlFor="billing-country">
-                          COUNTRY *
-                        </label>
-                        <select className="select-box select-box--primary-style" id="billing-country" data-bill="">
-                          <option value="">Choose Country</option>
-                          <option value="uae">United Arab Emirate (UAE)</option>
-                          <option value="uk">United Kingdom (UK)</option>
-                          <option value="us">United States (US)</option>
-                        </select>
-                      </div>
-
-                      <div className="u-s-m-b-15">
-                        <label className="gl-label" htmlFor="billing-town-city">
-                          TOWN/CITY *
-                        </label>
-                        <input
-                          className="input-text input-text--primary-style"
-                          type="text"
-                          id="billing-town-city"
-                          data-bill=""
-                        />
-                      </div>
-
-                      <div className="u-s-m-b-15">
-                        <label className="gl-label" htmlFor="billing-state">
-                          STATE/PROVINCE *
-                        </label>
-                        <select className="select-box select-box--primary-style" id="billing-state" data-bill="">
-                          <option value="">Choose State/Province</option>
-                          <option value="al">Alabama</option>
-                          <option value="al">Alaska</option>
-                          <option value="ny">New York</option>
-                        </select>
-                      </div>
-
-                      <div className="u-s-m-b-15">
-                        <label className="gl-label" htmlFor="billing-zip">
-                          ZIP/POSTAL CODE *
-                        </label>
-                        <input
-                          className="input-text input-text--primary-style"
-                          type="text"
-                          id="billing-zip"
-                          placeholder="Zip/Postal Code"
-                          data-bill=""
-                        />
-                      </div>
-
                       <div className="u-s-m-b-10">
                         <div className="check-box">
-                          <input 
-                            type="checkbox" 
-                            id="make-default-address" 
+                          <input
+                            type="checkbox"
+                            id="make-default-address"
                             data-bill=""
                             checked={makeDefaultAddress}
                             onChange={(e) => setMakeDefaultAddress(e.target.checked)}
                           />
-                          <div className="check-box__state check-box__state--primary">
+                          {/* <div className="check-box__state check-box__state--primary">
                             <label className="check-box__label" htmlFor="make-default-address">
                               Make default shipping and billing address
                             </label>
-                          </div>
+                          </div> */}
                         </div>
-                      </div>
-
-                      <div className="u-s-m-b-10">
-                        <button 
-                          type="button"
-                          className="gl-link" 
-                          onClick={() => setShowCreateAccount(!showCreateAccount)}
-                        >
-                          Want to create a new account?
-                        </button>
                       </div>
 
                       {showCreateAccount && (
@@ -484,31 +427,34 @@ const Checkout = () => {
                       <div className="o-summary__box">
                         <h1 className="checkout-f__h1">PAYMENT INFORMATION</h1>
                         <form className="checkout-f__payment">
-                          {[
-                            { id: 'cash-on-delivery', label: 'Cash on Delivery', description: 'Pay Upon Cash on delivery. (This service is only available for some countries)' },
-                            { id: 'direct-bank-transfer', label: 'Direct Bank Transfer', description: 'Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.' },
-                            { id: 'pay-with-check', label: 'Pay With Check', description: 'Please send a check to Store Name, Store Street, Store Town, Store State / County, Store Postcode.' },
-                            { id: 'pay-with-card', label: 'Pay With Credit / Debit Card', description: 'International Credit Cards must be eligible for use within the United States.' },
-                            { id: 'pay-pal', label: 'Pay Pal', description: 'When you click "Place Order" below we\'ll take you to Paypal\'s site to set up your billing information.' }
-                          ].map((payment) => (
-                            <div className="u-s-m-b-10" key={payment.id}>
-                              <div className="radio-box">
-                                <input
-                                  type="radio"
-                                  id={payment.id}
-                                  name="payment"
-                                  checked={paymentMethod === payment.id}
-                                  onChange={() => handlePaymentChange(payment.id)}
-                                />
-                                <div className="radio-box__state radio-box__state--primary">
-                                  <label className="radio-box__label" htmlFor={payment.id}>
-                                    {payment.label}
-                                  </label>
+                          {paymentMethods.length > 0 ? (
+                            paymentMethods
+                              .filter((p) => p.isActive) 
+                              .map((payment) => (
+                                <div className="u-s-m-b-10" key={payment.id}>
+                                  <div className="radio-box">
+                                    <input
+                                      type="radio"
+                                      id={payment.id}
+                                      name="payment"
+                                      checked={paymentMethod === payment.type}
+                                      onChange={() => handlePaymentChange(payment.type)}
+                                    />
+                                    <div className="radio-box__state radio-box__state--primary">
+                                      <label className="radio-box__label" htmlFor={payment.id}>
+                                        {payment.name}
+                                      </label>
+                                    </div>
+                                  </div>
+
+                                  {payment.description && (
+                                    <span className="gl-text u-s-m-t-6">{payment.description}</span>
+                                  )}
                                 </div>
-                              </div>
-                              <span className="gl-text u-s-m-t-6">{payment.description}</span>
-                            </div>
-                          ))}
+                              ))
+                          ) : (
+                            <p>Đang tải danh sách phương thức thanh toán...</p>
+                          )}
 
                           <div className="u-s-m-b-15">
                             <div className="check-box">
@@ -528,8 +474,8 @@ const Checkout = () => {
                           </div>
 
                           <div>
-                            <button 
-                              className="btn btn--e-brand-b-2" 
+                            <button
+                              className="btn btn--e-brand-b-2"
                               type="button"
                               onClick={handlePlaceOrder}
                               disabled={!paymentMethod || !agreeTerms}
