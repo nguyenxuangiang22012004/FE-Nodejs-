@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { getPaymentMethods } from '../services/CheckoutService';
+import { getUserAddresses } from '../services/AddressService';
 const Checkout = () => {
   const [showReturnCustomer, setShowReturnCustomer] = useState(false);
   const [showCoupon, setShowCoupon] = useState(false);
-  const [useDefaultAddress, setUseDefaultAddress] = useState(false);
   const [makeDefaultAddress, setMakeDefaultAddress] = useState(false);
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('');
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const handlePaymentChange = (method) => {
     setPaymentMethod(method);
   };
-
+  const [userAddress, setUserAddress] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    street: ''
+  });
   const handlePlaceOrder = () => {
   };
 
@@ -61,6 +68,31 @@ const Checkout = () => {
     fetchPaymentMethods();
   }, []);
 
+  useEffect(() => {
+    const fetchUserAddress = async () => {
+      try {
+        const res = await getUserAddresses();
+        const defaultAddress = Array.isArray(res.data)
+          ? res.data.find((addr) => addr.isDefault) || res.data[0]
+          : res.data;
+
+        if (defaultAddress) {
+          setUserAddress({
+            firstName: defaultAddress.firstName || '',
+            lastName: defaultAddress.lastName || '',
+            email: storedUser.email || '', 
+            phone: defaultAddress.phoneNumber || '',
+            street: defaultAddress.location || ''
+          });
+        }
+      } catch (error) {
+        console.error('❌ Lỗi khi tải địa chỉ người dùng:', error);
+      }
+    };
+
+    fetchUserAddress();
+  }, []);
+
   const subtotal = 379.00;
   const shipping = 4.00;
   const tax = 0.00;
@@ -95,73 +127,7 @@ const Checkout = () => {
             <div className="row">
               <div className="col-lg-12">
                 <div id="checkout-msg-group">
-                  {/* Returning Customer */}
-                  <div className="msg u-s-m-b-30">
-                    <span className="msg__text">
-                      Returning customer?{' '}
-                      <button
-                        className="gl-link"
-                        onClick={() => setShowReturnCustomer(!showReturnCustomer)}
-                      >
-                        Click here to login
-                      </button>
-                    </span>
-                    {showReturnCustomer && (
-                      <div className="l-f u-s-m-b-16">
-                        <span className="gl-text u-s-m-b-16">
-                          If you have an account with us, please log in.
-                        </span>
-                        <form className="l-f__form">
-                          <div className="gl-inline">
-                            <div className="u-s-m-b-15">
-                              <label className="gl-label" htmlFor="login-email">
-                                E-MAIL *
-                              </label>
-                              <input
-                                className="input-text input-text--primary-style"
-                                type="text"
-                                id="login-email"
-                                placeholder="Enter E-mail"
-                              />
-                            </div>
-                            <div className="u-s-m-b-15">
-                              <label className="gl-label" htmlFor="login-password">
-                                PASSWORD *
-                              </label>
-                              <input
-                                className="input-text input-text--primary-style"
-                                type="password"
-                                id="login-password"
-                                placeholder="Enter Password"
-                              />
-                            </div>
-                          </div>
-                          <div className="gl-inline">
-                            <div className="u-s-m-b-15">
-                              <button className="btn btn--e-transparent-brand-b-2" type="submit">
-                                LOGIN
-                              </button>
-                            </div>
-                            <div className="u-s-m-b-15">
-                              <a className="gl-link" href="lost-password.html">
-                                Lost Your Password?
-                              </a>
-                            </div>
-                          </div>
-                          <div className="check-box">
-                            <input type="checkbox" id="remember-me" />
-                            <div className="check-box__state check-box__state--primary">
-                              <label className="check-box__label" htmlFor="remember-me">
-                                Remember Me
-                              </label>
-                            </div>
-                          </div>
-                        </form>
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Coupon Code */}
                   <div className="msg">
                     <span className="msg__text">
                       Have a coupon?{' '}
@@ -215,118 +181,63 @@ const Checkout = () => {
                   <h1 className="checkout-f__h1">DELIVERY INFORMATION</h1>
                   <form className="checkout-f__delivery">
                     <div className="u-s-m-b-30">
-                      <div className="u-s-m-b-15">
-                        <div className="check-box">
-                          <input
-                            type="checkbox"
-                            id="get-address"
-                            checked={useDefaultAddress}
-                            onChange={(e) => setUseDefaultAddress(e.target.checked)}
-                          />
-                          <div className="check-box__state check-box__state--primary">
-                            <label className="check-box__label" htmlFor="get-address">
-                              Use default shipping and billing address from account
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
                       <div className="gl-inline">
                         <div className="u-s-m-b-15">
-                          <label className="gl-label" htmlFor="billing-fname">
-                            FIRST NAME *
-                          </label>
+                          <label className="gl-label" htmlFor="billing-fname">FIRST NAME *</label>
                           <input
                             className="input-text input-text--primary-style"
                             type="text"
                             id="billing-fname"
-                            data-bill=""
+                            value={userAddress.firstName}
+                            onChange={(e) => setUserAddress({ ...userAddress, firstName: e.target.value })}
                           />
                         </div>
+
                         <div className="u-s-m-b-15">
-                          <label className="gl-label" htmlFor="billing-lname">
-                            LAST NAME *
-                          </label>
+                          <label className="gl-label" htmlFor="billing-lname">LAST NAME *</label>
                           <input
                             className="input-text input-text--primary-style"
                             type="text"
                             id="billing-lname"
-                            data-bill=""
+                            value={userAddress.lastName}
+                            onChange={(e) => setUserAddress({ ...userAddress, lastName: e.target.value })}
                           />
                         </div>
                       </div>
 
                       <div className="u-s-m-b-15">
-                        <label className="gl-label" htmlFor="billing-email">
-                          E-MAIL *
-                        </label>
+                        <label className="gl-label" htmlFor="billing-email">E-MAIL *</label>
                         <input
                           className="input-text input-text--primary-style"
                           type="text"
                           id="billing-email"
-                          data-bill=""
+                          value={userAddress.email}
+                          onChange={(e) => setUserAddress({ ...userAddress, email: e.target.value })}
                         />
                       </div>
 
                       <div className="u-s-m-b-15">
-                        <label className="gl-label" htmlFor="billing-phone">
-                          PHONE *
-                        </label>
+                        <label className="gl-label" htmlFor="billing-phone">PHONE *</label>
                         <input
                           className="input-text input-text--primary-style"
                           type="text"
                           id="billing-phone"
-                          data-bill=""
+                          value={userAddress.phone}
+                          onChange={(e) => setUserAddress({ ...userAddress, phone: e.target.value })}
                         />
                       </div>
 
                       <div className="u-s-m-b-15">
-                        <label className="gl-label" htmlFor="billing-street">
-                          STREET ADDRESS *
-                        </label>
+                        <label className="gl-label" htmlFor="billing-street">STREET ADDRESS *</label>
                         <input
                           className="input-text input-text--primary-style"
                           type="text"
                           id="billing-street"
                           placeholder="House name and street name"
-                          data-bill=""
+                          value={userAddress.street}
+                          onChange={(e) => setUserAddress({ ...userAddress, street: e.target.value })}
                         />
                       </div>
-                      <div className="u-s-m-b-10">
-                        <div className="check-box">
-                          <input
-                            type="checkbox"
-                            id="make-default-address"
-                            data-bill=""
-                            checked={makeDefaultAddress}
-                            onChange={(e) => setMakeDefaultAddress(e.target.checked)}
-                          />
-                          {/* <div className="check-box__state check-box__state--primary">
-                            <label className="check-box__label" htmlFor="make-default-address">
-                              Make default shipping and billing address
-                            </label>
-                          </div> */}
-                        </div>
-                      </div>
-
-                      {showCreateAccount && (
-                        <div className="u-s-m-b-15">
-                          <span className="gl-text u-s-m-b-15">
-                            Create an account by entering the information below. If you are a returning customer please login at the top of the page.
-                          </span>
-                          <div>
-                            <label className="gl-label" htmlFor="reg-password">
-                              Account Password *
-                            </label>
-                            <input
-                              className="input-text input-text--primary-style"
-                              type="password"
-                              data-bill
-                              id="reg-password"
-                            />
-                          </div>
-                        </div>
-                      )}
 
                       <div className="u-s-m-b-10">
                         <label className="gl-label" htmlFor="order-note">
@@ -429,7 +340,7 @@ const Checkout = () => {
                         <form className="checkout-f__payment">
                           {paymentMethods.length > 0 ? (
                             paymentMethods
-                              .filter((p) => p.isActive) 
+                              .filter((p) => p.isActive)
                               .map((payment) => (
                                 <div className="u-s-m-b-10" key={payment.id}>
                                   <div className="radio-box">

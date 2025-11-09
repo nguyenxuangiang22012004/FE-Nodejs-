@@ -12,7 +12,6 @@ const DashAddressBook = () => {
         const fetchAddresses = async () => {
             try {
                 const res = await getUserAddresses();
-                console.log(res.data);
                 setAddresses(res.data || []);
             } catch (err) {
                 console.error("Lỗi khi tải địa chỉ:", err);
