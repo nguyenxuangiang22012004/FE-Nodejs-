@@ -80,7 +80,7 @@ const Checkout = () => {
           setUserAddress({
             firstName: defaultAddress.firstName || '',
             lastName: defaultAddress.lastName || '',
-            email: storedUser.email || '', 
+            email: storedUser.email || '',
             phone: defaultAddress.phoneNumber || '',
             street: defaultAddress.location || ''
           });
@@ -287,21 +287,21 @@ const Checkout = () => {
                     <div className="o-summary__section u-s-m-b-30">
                       <div className="o-summary__box">
                         <h1 className="checkout-f__h1">SHIPPING & BILLING</h1>
+
                         <div className="ship-b">
                           <span className="ship-b__text">Ship to:</span>
+
                           <div className="ship-b__box u-s-m-b-10">
                             <p className="ship-b__p">
-                              4247 Ashford Drive Virginia VA-20006 USA (+0) 900901904
+                              {userAddress.street
+                                ? `${userAddress.street}`
+                                : 'Chưa có địa chỉ giao hàng'}
+                              <br />
+                              {userAddress.firstName || userAddress.lastName
+                                ? `${userAddress.firstName} ${userAddress.lastName}`
+                                : ''}
+                              {userAddress.phone && ` (${userAddress.phone})`}
                             </p>
-                            <a className="ship-b__edit btn--e-transparent-platinum-b-2">
-                              Edit
-                            </a>
-                          </div>
-                          <div className="ship-b__box">
-                            <span className="ship-b__text">Bill to default billing address</span>
-                            <a className="ship-b__edit btn--e-transparent-platinum-b-2">
-                              Edit
-                            </a>
                           </div>
                         </div>
                       </div>
