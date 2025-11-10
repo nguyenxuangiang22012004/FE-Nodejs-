@@ -216,21 +216,10 @@ const Checkout = () => {
                                 })}
                               </select>
                             </div>
-                            <div className="u-s-m-b-15">
-                              <button className="btn btn--e-transparent-brand-b-2" type="button"
-                                onClick={() => {
-                                  if (selectedCoupon) {
-                                    Swal.fire('Applied!', `Coupon ${selectedCoupon.code} đã được áp dụng.`, 'success');
-                                  }
-                                }}>
-                                APPLY
-                              </button>
-                            </div>
                           </div>
                         </form>
                       </div>
                     )}
-
                   </div>
                 </div>
               </div>
