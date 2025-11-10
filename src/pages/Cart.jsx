@@ -174,7 +174,7 @@ const Cart = () => {
   const subtotal = Array.isArray(cartItems)
     ? cartItems.reduce((total, item) => total + (item.price || 0) * (item.quantity || 0), 0)
     : 0;
-  const shipping = 4.0;
+  const shipping = 30000;
   const tax = 0.0;
   const grandTotal = subtotal + shipping + tax;
 

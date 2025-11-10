@@ -8,26 +8,23 @@ const CartSummary = ({ subtotal, shipping, tax, grandTotal, onProceedToCheckout 
           <tbody>
             <tr>
               <td>SUBTOTAL</td>
-              <td>${subtotal.toFixed(2)}</td>
+              <td>{subtotal.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
             </tr>
             <tr>
               <td>SHIPPING</td>
-              <td>${shipping.toFixed(2)}</td>
-            </tr>
-            <tr>
-              <td>TAX</td>
-              <td>${tax.toFixed(2)}</td>
+              <td>{shipping.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
             </tr>
             <tr>
               <td>GRAND TOTAL</td>
-              <td>${grandTotal.toFixed(2)}</td>
+              <td>{grandTotal.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
             </tr>
           </tbody>
         </table>
+        💡 Giải thích:
       </div>
       <div>
-        <button 
-          className="btn btn--e-brand-b-2" 
+        <button
+          className="btn btn--e-brand-b-2"
           type="button"
           onClick={onProceedToCheckout}
         >

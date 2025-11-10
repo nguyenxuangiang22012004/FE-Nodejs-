@@ -25,7 +25,9 @@ export const getCoupons = async () => {
 
 export const createCheckoutOrder = async (data) => {
   try {
+    console.log("DATA",data);
     const res = await api.post("order/checkout", data);
+    console.log(res);
     return res;
   } catch (error) {
     console.error("❌ Lỗi khi tạo đơn hàng:", error.response?.data || error.message);
