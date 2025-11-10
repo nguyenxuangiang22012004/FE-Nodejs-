@@ -19,8 +19,7 @@ const CartSummary = ({ subtotal, shipping, tax, grandTotal, onProceedToCheckout 
               <td>{grandTotal.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
             </tr>
           </tbody>
-        </table>
-        💡 Giải thích:
+        </table>   
       </div>
       <div>
         <button
