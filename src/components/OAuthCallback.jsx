@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from '../config/axios';
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -15,18 +15,14 @@ const OAuthCallback = () => {
         if (window.location.hash === "#_=_") {
           window.history.replaceState({}, document.title, window.location.pathname);
         }
+    
+        const response = await api.get("/me", { withCredentials: true });
 
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-        
-        const response = await axios.get(`${backendUrl}/me`, {
-          withCredentials: true, 
-        });
-        
-        if (!response.data.data) {
+        if (!response.data) {
           throw new Error("Không nhận được dữ liệu user từ backend");
         }
 
-        const user = response.data.data;
+        const user = response.data;
         
 
         // Lưu user vào localStorage để hiển thị UI
