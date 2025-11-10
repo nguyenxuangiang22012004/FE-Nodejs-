@@ -86,10 +86,7 @@ const Checkout = () => {
     });
 
     if (!result.isConfirmed) return;
-
     try {
-      await deleteCartItem(productVariantId);
-
       const updatedCart = cartItems.filter(item => item.productVariantId !== productVariantId);
       setCartItems(updatedCart);
       localStorage.setItem('cart', JSON.stringify(updatedCart));
