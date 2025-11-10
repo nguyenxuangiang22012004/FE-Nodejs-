@@ -58,7 +58,7 @@ const MiniCartHeader = () => {
     window.addEventListener("cartUpdated", handleCartUpdated);
     return () => window.removeEventListener("cartUpdated", handleCartUpdated);
   }, []);
-
+  
   const handleDeleteItem = async (productVariantId) => {
     const confirm = await Swal.fire({
       title: "Xóa sản phẩm này?",

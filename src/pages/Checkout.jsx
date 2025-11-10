@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getPaymentMethods } from '../services/CheckoutService';
 import { getUserAddresses } from '../services/AddressService';
+import { deleteCartItem } from '../services/CartService';
+import Swal from 'sweetalert2';
 const Checkout = () => {
   const [showReturnCustomer, setShowReturnCustomer] = useState(false);
   const [showCoupon, setShowCoupon] = useState(false);
@@ -26,7 +28,7 @@ const Checkout = () => {
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
+    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
     setCartItems(storedCart);
   }, []);
 
@@ -67,7 +69,37 @@ const Checkout = () => {
 
     fetchUserAddress();
   }, []);
+  const handleRemoveItem = async (productVariantId) => {
+    const itemToRemove = cartItems.find(item => item.productVariantId === productVariantId);
+    if (!itemToRemove) return;
 
+    const result = await Swal.fire({
+      title: 'Xác nhận xóa?',
+      text: `Bạn có chắc muốn xóa "${itemToRemove.productName}" khỏi đơn hàng?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      // ✅ Gọi API xóa
+      await deleteCartItem(productVariantId);
+
+      const updatedCart = cartItems.filter(item => item.productVariantId !== productVariantId);
+      setCartItems(updatedCart);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      window.dispatchEvent(new Event("cartUpdated"));
+      Swal.fire('Đã xóa!', 'Sản phẩm đã được xóa khỏi giỏ hàng.', 'success');
+    } catch (error) {
+      console.error('❌ Lỗi khi xóa sản phẩm:', error);
+      Swal.fire('Lỗi', 'Không thể xóa sản phẩm. Vui lòng thử lại.', 'error');
+    }
+  };
   const shipping = 4.00;
   const tax = 0.00;
 
@@ -259,7 +291,13 @@ const Checkout = () => {
                                 </span>
                               </div>
                             </div>
-                            <a className="o-card__del far fa-trash-alt"></a>
+                            <a
+                              onClick={() => handleRemoveItem(item.productVariantId)}
+                              className="o-card__del far fa-trash-alt"
+                              style={{ cursor: 'pointer' }}
+                              role="button"
+                            ></a>
+
                           </div>
                         ))}
                       </div>
@@ -296,19 +334,30 @@ const Checkout = () => {
                           <tbody>
                             <tr>
                               <td>SHIPPING</td>
-                              <td>${shipping.toFixed(2)}</td>
-                            </tr>
-                            <tr>
-                              <td>TAX</td>
-                              <td>${tax.toFixed(2)}</td>
+                              <td>
+                                {shipping.toLocaleString("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                })}
+                              </td>
                             </tr>
                             <tr>
                               <td>SUBTOTAL</td>
-                              <td>${subtotal.toFixed(2)}</td>
+                              <td>
+                                {subtotal.toLocaleString("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                })}
+                              </td>
                             </tr>
                             <tr>
                               <td>GRAND TOTAL</td>
-                              <td>${grandTotal.toFixed(2)}</td>
+                              <td>
+                                {grandTotal.toLocaleString("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                })}
+                              </td>
                             </tr>
                           </tbody>
                         </table>

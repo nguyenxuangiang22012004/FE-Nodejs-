@@ -6,6 +6,7 @@ import ShippingCalculator from '../components/cart/ShippingCalculator';
 import CartNote from '../components/cart/CartNote';
 import { getCart, updateCart, deleteCartItem, clearCart } from '../services/CartService';
 import { getProductDetail } from '../services/NewArrivalService';
+
 import Swal from 'sweetalert2';
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
