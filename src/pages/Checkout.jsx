@@ -103,15 +103,17 @@ const Checkout = () => {
   useEffect(() => {
     const fetchCoupons = async () => {
       const data = await getCoupons();
-      setCoupons(data.filter(c => c.isActive));
+      const activeCoupons = data.filter(item => item.coupon?.isActive);
+      setCoupons(activeCoupons);
     };
     fetchCoupons();
   }, []);
 
+
   const handleSelectCoupon = (e) => {
     const couponId = e.target.value;
-    const coupon = coupons.find(c => c.id === couponId);
-    setSelectedCoupon(coupon || null);
+    const found = coupons.find(c => c.coupon.id === couponId);
+    setSelectedCoupon(found ? found.coupon : null);
   };
   useEffect(() => {
     const newSubtotal = cartItems.reduce((total, item) => {
@@ -122,21 +124,33 @@ const Checkout = () => {
 
     setShipping(30000);
   }, [cartItems]);
-  const calculateDiscountedShipping = () => {
-    if (!selectedCoupon) return shipping;
+  const calculateDiscount = () => {
+    if (!selectedCoupon) return { discountedShipping: shipping, productDiscount: 0 };
+
+    let discountedShipping = shipping;
+    let productDiscount = 0;
 
     if (selectedCoupon.promotionalType === 'SHIPPING') {
       if (selectedCoupon.discountType === 'PERCENTAGE') {
-        return shipping * (1 - selectedCoupon.discountValue / 100);
-      } else if (selectedCoupon.discountType === 'FIXED') {
-        return Math.max(shipping - selectedCoupon.discountValue, 0);
+        discountedShipping = shipping * (1 - selectedCoupon.discountValue / 100);
+      } else if (selectedCoupon.discountType === 'FIXED_AMOUNT') {
+        discountedShipping = Math.max(shipping - selectedCoupon.discountValue, 0);
       }
     }
-    return shipping;
+
+    if (selectedCoupon.promotionalType === 'PRODUCT') {
+      if (selectedCoupon.discountType === 'PERCENTAGE') {
+        productDiscount = subtotal * (selectedCoupon.discountValue / 100);
+      } else if (selectedCoupon.discountType === 'FIXED_AMOUNT') {
+        productDiscount = Math.min(selectedCoupon.discountValue, subtotal);
+      }
+    }
+
+    return { discountedShipping, productDiscount };
   };
 
-  const discountedShipping = calculateDiscountedShipping();
-  const grandTotal = subtotal + discountedShipping;
+  const { discountedShipping, productDiscount } = calculateDiscount();
+  const grandTotal = subtotal - productDiscount + discountedShipping;
 
   return (
     <>
@@ -187,15 +201,19 @@ const Checkout = () => {
                             <div className="u-s-m-b-15">
                               <select
                                 className="input-text input-text--primary-style"
-                                value={selectedCoupon?.id || ""} // 👈 Đổi _id thành id
+                                value={selectedCoupon?.id || ""}
                                 onChange={handleSelectCoupon}
                               >
                                 <option value="">-- Select coupon --</option>
-                                {coupons.map(c => (
-                                  <option key={c.id} value={c.id}> {/* 👈 Đổi _id thành id */}
-                                    {c.code} ({c.promotionalType} - {c.discountValue}{c.discountType === 'PERCENTAGE' ? '%' : 'đ'})
-                                  </option>
-                                ))}
+                                {coupons.map((item) => {
+                                  const c = item.coupon; // lấy dữ liệu coupon thực
+                                  return (
+                                    <option key={c.id} value={c.id}>
+                                      {c.code} - {c.promotionalType} - {c.discountValue}
+                                      {c.discountType === 'PERCENTAGE' ? '%' : ` ${c.discountType}`}
+                                    </option>
+                                  );
+                                })}
                               </select>
                             </div>
                             <div className="u-s-m-b-15">
@@ -342,7 +360,6 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    {/* Shipping & Billing */}
                     <div className="o-summary__section u-s-m-b-30">
                       <div className="o-summary__box">
                         <h1 className="checkout-f__h1">SHIPPING & BILLING</h1>
@@ -372,15 +389,6 @@ const Checkout = () => {
                         <table className="o-summary__table">
                           <tbody>
                             <tr>
-                              <td>SHIPPING</td>
-                              <td>
-                                {shipping.toLocaleString("vi-VN", {
-                                  style: "currency",
-                                  currency: "VND",
-                                })}
-                              </td>
-                            </tr>
-                            <tr>
                               <td>SUBTOTAL</td>
                               <td>
                                 {subtotal.toLocaleString("vi-VN", {
@@ -389,6 +397,35 @@ const Checkout = () => {
                                 })}
                               </td>
                             </tr>
+
+                            {/* Hiển thị product discount nếu có */}
+
+                            <tr>
+                              <td>SHIPPING</td>
+                              <td>
+                                {discountedShipping.toLocaleString("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                })}
+                                {selectedCoupon?.promotionalType === 'SHIPPING' && shipping !== discountedShipping && (
+                                  <span style={{ textDecoration: 'line-through', marginLeft: '5px', color: '#999' }}>
+                                    {shipping.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                            {productDiscount > 0 && (
+                              <tr>
+                                <td>DISCOUNT ({selectedCoupon?.code})</td>
+                                <td style={{ color: 'green' }}>
+                                  -{productDiscount.toLocaleString("vi-VN", {
+                                    style: "currency",
+                                    currency: "VND",
+                                  })}
+                                </td>
+                              </tr>
+                            )}
+
                             <tr>
                               <td>GRAND TOTAL</td>
                               <td>

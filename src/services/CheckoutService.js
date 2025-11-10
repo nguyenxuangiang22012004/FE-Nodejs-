@@ -15,7 +15,7 @@ export const getPaymentMethods = async () => {
 
 export const getCoupons = async () => {
   try {
-    const response = await api.get('/coupon');
+    const response = await api.get('/order/voucher');
     return response.data; 
   } catch (error) {
     console.error('Error fetching coupons:', error);
