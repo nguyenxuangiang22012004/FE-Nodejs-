@@ -7,7 +7,7 @@ const Checkout = () => {
   const [showCoupon, setShowCoupon] = useState(false);
   const [coupons, setCoupons] = useState([]);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
-  const [subtotal, setSubtotal] = useState(0); 
+  const [subtotal, setSubtotal] = useState(0);
   const [shipping, setShipping] = useState(0);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -113,7 +113,15 @@ const Checkout = () => {
     const coupon = coupons.find(c => c.id === couponId);
     setSelectedCoupon(coupon || null);
   };
+  useEffect(() => {
+    const newSubtotal = cartItems.reduce((total, item) => {
+      return total + item.price * item.quantity;
+    }, 0);
 
+    setSubtotal(newSubtotal);
+
+    setShipping(30000);
+  }, [cartItems]);
   const calculateDiscountedShipping = () => {
     if (!selectedCoupon) return shipping;
 
