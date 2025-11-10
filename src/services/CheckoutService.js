@@ -22,3 +22,13 @@ export const getCoupons = async () => {
     return [];
   }
 };
+
+export const createCheckoutOrder = async (data) => {
+  try {
+    const res = await api.post("order/checkout", data);
+    return res;
+  } catch (error) {
+    console.error("❌ Lỗi khi tạo đơn hàng:", error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};

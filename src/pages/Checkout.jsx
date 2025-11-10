@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getPaymentMethods, getCoupons } from '../services/CheckoutService';
+import { getPaymentMethods, getCoupons ,createCheckoutOrder } from '../services/CheckoutService';
 import { getUserAddresses } from '../services/AddressService';
 import { deleteCartItem } from '../services/CartService';
 import Swal from 'sweetalert2';
@@ -17,15 +17,61 @@ const Checkout = () => {
     setPaymentMethod(method);
   };
   const [userAddress, setUserAddress] = useState({
+    id : '',
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     street: ''
   });
-  const handlePlaceOrder = () => {
-  };
+  const handlePlaceOrder = async () => {
+    if (!agreeTerms) {
+      Swal.fire('Thông báo', 'Vui lòng đồng ý với điều khoản dịch vụ trước khi đặt hàng.', 'warning');
+      return;
+    }
 
+    if (!paymentMethod) {
+      Swal.fire('Thông báo', 'Vui lòng chọn phương thức thanh toán.', 'warning');
+      return;
+    }
+
+    try {
+      const data = {
+        shippingAddressId: userAddress.id, 
+        paymentMethodId: paymentMethods.find(p => p.type === paymentMethod)?.id,
+        couponId: selectedCoupon ? selectedCoupon.id : null,
+        totalAmount: grandTotal,
+        shippingCost: discountedShipping,
+        notes: document.getElementById('order-note')?.value || "",
+
+        productVariants: cartItems.map(item => ({
+          productVariantId: item.productVariantId,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          totalPrice: item.price * item.quantity
+        }))
+      };
+
+      const res = await createCheckoutOrder(data);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Đặt hàng thành công!',
+        text: res.message || 'Đơn hàng của bạn đã được tạo thành công.',
+        timer: 2500,
+      });
+
+      setCartItems([]);
+      window.dispatchEvent(new Event("cartUpdated"));
+
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi khi đặt hàng',
+        text: error?.message || 'Không thể tạo đơn hàng. Vui lòng thử lại sau.',
+      });
+    }
+  };
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
@@ -56,6 +102,7 @@ const Checkout = () => {
 
         if (defaultAddress) {
           setUserAddress({
+            id:defaultAddress.id ,
             firstName: defaultAddress.firstName || '',
             lastName: defaultAddress.lastName || '',
             email: storedUser.email || '',
@@ -145,6 +192,8 @@ const Checkout = () => {
 
     return { discountedShipping, productDiscount };
   };
+
+
 
   const { discountedShipping, productDiscount } = calculateDiscount();
   const grandTotal = subtotal - productDiscount + discountedShipping;
