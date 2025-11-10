@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getPaymentMethods, getCoupons ,createCheckoutOrder } from '../services/CheckoutService';
+import { getPaymentMethods, getCoupons, createCheckoutOrder } from '../services/CheckoutService';
 import { getUserAddresses } from '../services/AddressService';
 import { deleteCartItem } from '../services/CartService';
 import Swal from 'sweetalert2';
@@ -17,7 +17,7 @@ const Checkout = () => {
     setPaymentMethod(method);
   };
   const [userAddress, setUserAddress] = useState({
-    id : '',
+    id: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -37,7 +37,7 @@ const Checkout = () => {
 
     try {
       const data = {
-        shippingAddressId: userAddress.id, 
+        shippingAddressId: userAddress.id,
         paymentMethodId: paymentMethods.find(p => p.type === paymentMethod)?.id,
         couponId: selectedCoupon ? selectedCoupon.id : null,
         totalAmount: grandTotal,
@@ -102,7 +102,7 @@ const Checkout = () => {
 
         if (defaultAddress) {
           setUserAddress({
-            id:defaultAddress.id ,
+            id: defaultAddress.id,
             firstName: defaultAddress.firstName || '',
             lastName: defaultAddress.lastName || '',
             email: storedUser.email || '',
@@ -193,7 +193,31 @@ const Checkout = () => {
     return { discountedShipping, productDiscount };
   };
 
+  const handleSaveAddress = (e) => {
+    e.preventDefault();
 
+    // Kiểm tra dữ liệu cơ bản
+    if (!userAddress.firstName || !userAddress.lastName || !userAddress.phone || !userAddress.street) {
+      Swal.fire('Thiếu thông tin', 'Vui lòng điền đầy đủ thông tin giao hàng.', 'warning');
+      return;
+    }
+
+    // Lưu vào localStorage (nếu muốn giữ lại giữa các phiên)
+    localStorage.setItem('checkoutAddress', JSON.stringify(userAddress));
+
+    // Thông báo cập nhật
+    Swal.fire({
+      icon: 'success',
+      title: 'Đã lưu thông tin giao hàng!',
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  };
+
+  useEffect(() => {
+    const savedAddress = JSON.parse(localStorage.getItem('checkoutAddress'));
+    if (savedAddress) setUserAddress(savedAddress);
+  }, []);
 
   const { discountedShipping, productDiscount } = calculateDiscount();
   const grandTotal = subtotal - productDiscount + discountedShipping;
@@ -283,7 +307,7 @@ const Checkout = () => {
                 {/* Delivery Information */}
                 <div className="col-lg-6">
                   <h1 className="checkout-f__h1">DELIVERY INFORMATION</h1>
-                  <form className="checkout-f__delivery">
+                  <form className="checkout-f__delivery" onSubmit={handleSaveAddress}>
                     <div className="u-s-m-b-30">
                       <div className="gl-inline">
                         <div className="u-s-m-b-15">
