@@ -11,3 +11,14 @@ export const getPaymentMethods = async () => {
     throw error;
   }
 };
+
+
+export const getCoupons = async () => {
+  try {
+    const response = await api.get('/coupon');
+    return response.data; 
+  } catch (error) {
+    console.error('Error fetching coupons:', error);
+    return [];
+  }
+};

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { getPaymentMethods } from '../services/CheckoutService';
+import { getPaymentMethods, getCoupons } from '../services/CheckoutService';
 import { getUserAddresses } from '../services/AddressService';
 import { deleteCartItem } from '../services/CartService';
 import Swal from 'sweetalert2';
 const Checkout = () => {
-  const [showReturnCustomer, setShowReturnCustomer] = useState(false);
   const [showCoupon, setShowCoupon] = useState(false);
-  const [makeDefaultAddress, setMakeDefaultAddress] = useState(false);
-  const [showCreateAccount, setShowCreateAccount] = useState(false);
+  const [coupons, setCoupons] = useState([]);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [subtotal, setSubtotal] = useState(0); 
+  const [shipping, setShipping] = useState(0);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -87,7 +88,6 @@ const Checkout = () => {
     if (!result.isConfirmed) return;
 
     try {
-      // ✅ Gọi API xóa
       await deleteCartItem(productVariantId);
 
       const updatedCart = cartItems.filter(item => item.productVariantId !== productVariantId);
@@ -100,15 +100,35 @@ const Checkout = () => {
       Swal.fire('Lỗi', 'Không thể xóa sản phẩm. Vui lòng thử lại.', 'error');
     }
   };
-  const shipping = 4.00;
-  const tax = 0.00;
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      const data = await getCoupons();
+      setCoupons(data.filter(c => c.isActive));
+    };
+    fetchCoupons();
+  }, []);
 
-  // Tính toán subtotal và grandTotal từ cartItems
-  const subtotal = cartItems.reduce(
-    (total, item) => total + (item.price || 0) * (item.quantity || 0),
-    0
-  );
-  const grandTotal = subtotal + shipping + tax;
+  const handleSelectCoupon = (e) => {
+    const couponId = e.target.value;
+    const coupon = coupons.find(c => c.id === couponId);
+    setSelectedCoupon(coupon || null);
+  };
+
+  const calculateDiscountedShipping = () => {
+    if (!selectedCoupon) return shipping;
+
+    if (selectedCoupon.promotionalType === 'SHIPPING') {
+      if (selectedCoupon.discountType === 'PERCENTAGE') {
+        return shipping * (1 - selectedCoupon.discountValue / 100);
+      } else if (selectedCoupon.discountType === 'FIXED') {
+        return Math.max(shipping - selectedCoupon.discountValue, 0);
+      }
+    }
+    return shipping;
+  };
+
+  const discountedShipping = calculateDiscountedShipping();
+  const grandTotal = subtotal + discountedShipping;
 
   return (
     <>
@@ -132,14 +152,12 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* Customer Messages Section */}
       <div className="u-s-p-b-60">
         <div className="section__content">
           <div className="container">
             <div className="row">
               <div className="col-lg-12">
                 <div id="checkout-msg-group">
-
                   <div className="msg">
                     <span className="msg__text">
                       Have a coupon?{' '}
@@ -150,23 +168,35 @@ const Checkout = () => {
                         Click Here to enter your code
                       </button>
                     </span>
+
                     {showCoupon && (
                       <div className="c-f u-s-m-b-16">
                         <span className="gl-text u-s-m-b-16">
-                          Enter your coupon code if you have one.
+                          Select a coupon if you have one.
                         </span>
                         <form className="c-f__form">
                           <div className="u-s-m-b-16">
                             <div className="u-s-m-b-15">
-                              <input
+                              <select
                                 className="input-text input-text--primary-style"
-                                type="text"
-                                id="coupon"
-                                placeholder="Coupon Code"
-                              />
+                                value={selectedCoupon?.id || ""} // 👈 Đổi _id thành id
+                                onChange={handleSelectCoupon}
+                              >
+                                <option value="">-- Select coupon --</option>
+                                {coupons.map(c => (
+                                  <option key={c.id} value={c.id}> {/* 👈 Đổi _id thành id */}
+                                    {c.code} ({c.promotionalType} - {c.discountValue}{c.discountType === 'PERCENTAGE' ? '%' : 'đ'})
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                             <div className="u-s-m-b-15">
-                              <button className="btn btn--e-transparent-brand-b-2" type="submit">
+                              <button className="btn btn--e-transparent-brand-b-2" type="button"
+                                onClick={() => {
+                                  if (selectedCoupon) {
+                                    Swal.fire('Applied!', `Coupon ${selectedCoupon.code} đã được áp dụng.`, 'success');
+                                  }
+                                }}>
                                 APPLY
                               </button>
                             </div>
@@ -174,6 +204,7 @@ const Checkout = () => {
                         </form>
                       </div>
                     )}
+
                   </div>
                 </div>
               </div>
