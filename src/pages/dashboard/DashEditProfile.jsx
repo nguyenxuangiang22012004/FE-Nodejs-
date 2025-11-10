@@ -1,23 +1,35 @@
 import React, { useEffect, useState } from "react";
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import { useLocation } from 'react-router-dom';
-import { updateUserProfile } from "../../services/DashboardService";
+import { updateUserProfile, getUserProfile } from "../../services/DashboardService";
 import DashboardStats from '../../components/dashboard/DashboardStats';
+
 const DashEditProfile = () => {
   const location = useLocation();
   const userData = location.state?.user;
+  const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
-
-  const [formData, setFormData] = useState({
-    firstName: userData?.firstName || '',
-    lastName: userData?.lastName || '',
-    email: userData?.email || '',
-    phoneNumber: userData?.phoneNumber || '',
-    birthday: userData?.birthday || '',
-    gender: userData?.gender || '',
-  });
+  useEffect(() => {
+    if (userData) {
+      setFormData({
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        email: userData.email || "",
+        phoneNumber: userData.phoneNumber || "",
+        birthday: userData.birthday || "",
+        gender: userData.gender || "",
+      });
+    } else {
+      // fallback: gọi API hoặc để trống
+      (async () => {
+        const res = await getUserProfile();
+        if (res?.success) {
+          setFormData(res.data);
+        }
+      })();
+    }
+  }, [userData]);
 
   // Hàm xử lý thay đổi input
   const handleChange = (e) => {
@@ -31,7 +43,6 @@ const DashEditProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
     try {
       const res = await updateUserProfile(formData);
@@ -44,11 +55,18 @@ const DashEditProfile = () => {
     }
   };
 
-  // Xử lý tách birthday (nếu cần)
-  const date = new Date(formData.birthday);
-  const year = date.getFullYear() || "";
-  const month = date.getMonth() + 1 || "";
-  const day = date.getDate() || "";
+  // Add loading state check
+  if (!formData) {
+    return (
+      <div className="u-s-p-y-60">
+        <div className="section__content">
+          <div className="container">
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -80,7 +98,7 @@ const DashEditProfile = () => {
               <div className="row">
                 <div className="col-lg-3 col-md-12">
                   <DashboardSidebar />
-                   <DashboardStats />
+                  <DashboardStats />
                 </div>
 
                 <div className="col-lg-9 col-md-12">
@@ -103,7 +121,7 @@ const DashEditProfile = () => {
                               id="reg-fname"
                               name="firstName"
                               placeholder="John"
-                              value={formData.firstName}
+                              value={formData.firstName || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -118,7 +136,7 @@ const DashEditProfile = () => {
                               id="reg-lname"
                               name="lastName"
                               placeholder="Doe"
-                              value={formData.lastName}
+                              value={formData.lastName || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -146,7 +164,7 @@ const DashEditProfile = () => {
                               className="select-box select-box--primary-style u-w-100"
                               id="gender"
                               name="gender"
-                              value={formData.gender}
+                              value={formData.gender || ""}
                               onChange={handleChange}
                             >
                               <option value="">Select</option>
@@ -167,7 +185,7 @@ const DashEditProfile = () => {
                               id="reg-email"
                               name="email"
                               placeholder="johndoe@domain.com"
-                              value={formData.email}
+                              value={formData.email || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -182,14 +200,18 @@ const DashEditProfile = () => {
                               id="reg-phone"
                               name="phoneNumber"
                               placeholder="Please enter your mobile"
-                              value={formData.phoneNumber}
+                              value={formData.phoneNumber || ""}
                               onChange={handleChange}
                             />
                           </div>
                         </div>
 
-                        <button className="btn btn--e-brand-b-2" type="submit">
-                          SAVE
+                        <button 
+                          className="btn btn--e-brand-b-2" 
+                          type="submit"
+                          disabled={loading}
+                        >
+                          {loading ? "SAVING..." : "SAVE"}
                         </button>
                       </form>
                     </div>
