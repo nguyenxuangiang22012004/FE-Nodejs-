@@ -36,7 +36,7 @@ export const updateCart = async (cartItems) => {
 export const deleteCartItem = async (productVariantId) => {
   try {
     const res = await api.delete(`/cart/${productVariantId}`);
-    return res.data;
+    return res;
   } catch (error) {
     console.error('Error deleting cart item:', error);
     throw error;
@@ -46,7 +46,7 @@ export const deleteCartItem = async (productVariantId) => {
 export const clearCart = async () => {
   try {
     const res = await api.delete('/cart'); 
-    return res.data;
+    return res;
   } catch (error) {
     console.error('Error clearing cart:', error);
     throw error;

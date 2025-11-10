@@ -91,7 +91,14 @@ const Cart = () => {
 
     try {
       await deleteCartItem(itemToRemove.productVariantId);
-      setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+
+      // Cập nhật state
+      const updatedCart = cartItems.filter(item => item.id !== id);
+      setCartItems(updatedCart);
+
+      // ✅ Cập nhật localStorage
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+
       Swal.fire('Đã xóa!', 'Sản phẩm đã được xóa khỏi giỏ hàng.', 'success');
     } catch (error) {
       console.error('Failed to delete item from cart:', error);
@@ -116,6 +123,10 @@ const Cart = () => {
     try {
       await clearCart();
       setCartItems([]);
+
+      // ✅ Cập nhật localStorage
+      localStorage.removeItem('cart');
+
       Swal.fire('Đã xóa!', 'Toàn bộ giỏ hàng đã được làm trống.', 'success');
     } catch (error) {
       console.error('Failed to clear cart:', error);

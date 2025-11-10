@@ -23,37 +23,12 @@ const Checkout = () => {
   const handlePlaceOrder = () => {
   };
 
-  // Dữ liệu giỏ hàng mẫu
-  const cartItems = [
-    {
-      id: 1,
-      name: 'Yellow Wireless Headphone',
-      image: 'images/product/electronic/product3.jpg',
-      quantity: 1,
-      price: 150.00
-    },
-    {
-      id: 2,
-      name: 'Nikon DSLR Camera 4k',
-      image: 'images/product/electronic/product18.jpg',
-      quantity: 1,
-      price: 150.00
-    },
-    {
-      id: 3,
-      name: 'New Dress D Nice Elegant',
-      image: 'images/product/women/product8.jpg',
-      quantity: 1,
-      price: 150.00
-    },
-    {
-      id: 4,
-      name: 'New Fashion D Nice Elegant',
-      image: 'images/product/men/product8.jpg',
-      quantity: 1,
-      price: 150.00
-    }
-  ];
+  const [cartItems, setCartItems] = useState([]);
+
+  useEffect(() => {
+    const storedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
+    setCartItems(storedCart);
+  }, []);
 
   useEffect(() => {
     const fetchPaymentMethods = async () => {
@@ -93,9 +68,14 @@ const Checkout = () => {
     fetchUserAddress();
   }, []);
 
-  const subtotal = 379.00;
   const shipping = 4.00;
   const tax = 0.00;
+
+  // Tính toán subtotal và grandTotal từ cartItems
+  const subtotal = cartItems.reduce(
+    (total, item) => total + (item.price || 0) * (item.quantity || 0),
+    0
+  );
   const grandTotal = subtotal + shipping + tax;
 
   return (
@@ -271,10 +251,12 @@ const Checkout = () => {
                               </div>
                               <div className="o-card__info-wrap">
                                 <span className="o-card__name">
-                                  <a href="product-detail.html">{item.name}</a>
+                                  <a href="product-detail.html">{item.productName}</a>
                                 </span>
                                 <span className="o-card__quantity">Quantity x {item.quantity}</span>
-                                <span className="o-card__price">${item.price.toFixed(2)}</span>
+                                <span className="o-card__price">
+                                  {item.price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                                </span>
                               </div>
                             </div>
                             <a className="o-card__del far fa-trash-alt"></a>

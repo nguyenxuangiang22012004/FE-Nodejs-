@@ -82,32 +82,59 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
           icon: 'success',
           title: 'Đã thêm vào giỏ hàng!',
           html: `
-          <div style="text-align:left; font-size:15px; margin-top:10px">
-            <b>Sản phẩm:</b> ${product.name}<br/>
-            <b>Màu sắc:</b> ${selectedColor}<br/>
-            <b>Kích cỡ:</b> ${selectedSize}<br/>
-            <b>Số lượng:</b> ${quantity}<br/>
-            <b>Tổng cộng:</b> ${new Intl.NumberFormat('vi-VN', {
+      <div style="text-align:left; font-size:15px; margin-top:10px">
+        <b>Sản phẩm:</b> ${product.name}<br/>
+        <b>Màu sắc:</b> ${selectedColor}<br/>
+        <b>Kích cỡ:</b> ${selectedSize}<br/>
+        <b>Số lượng:</b> ${quantity}<br/>
+        <b>Tổng cộng:</b> ${new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND',
           }).format(product.price * quantity)}
-          </div>
-        `,
+      </div>
+    `,
           timer: 1800,
           showConfirmButton: false,
         });
 
+        // 🧠 Tạo đối tượng cartItem
+        const cartItem = {
+          ...product,
+          selectedSize,
+          selectedColor,
+          quantity,
+          variantId,
+        };
+
+        // ✅ Lấy giỏ hàng hiện tại từ localStorage (nếu có)
+        const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // ✅ Kiểm tra xem sản phẩm cùng variant đã có trong giỏ chưa
+        const existingItemIndex = existingCart.findIndex(
+          (item) =>
+            item.variantId === variantId &&
+            item.selectedSize === selectedSize &&
+            item.selectedColor === selectedColor
+        );
+
+        if (existingItemIndex !== -1) {
+          // Nếu có rồi → tăng số lượng
+          existingCart[existingItemIndex].quantity += quantity;
+        } else {
+          // Nếu chưa có → thêm mới
+          existingCart.push(cartItem);
+        }
+
+        // ✅ Lưu lại vào localStorage
+        localStorage.setItem('cart', JSON.stringify(existingCart));
+
+        // ✅ Kích hoạt event cập nhật giỏ hàng (nếu cần)
+        window.dispatchEvent(new Event("cartUpdated"));
+
+        // Nếu component cha có callback
         if (onConfirmAddToCart) {
-          const cartItem = {
-            ...product,
-            selectedSize,
-            selectedColor,
-            quantity,
-            variantId,
-          };
           onConfirmAddToCart(cartItem);
         }
-        window.dispatchEvent(new Event("cartUpdated"));
       } else {
         MySwal.fire({
           icon: 'error',
@@ -123,7 +150,6 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         text: 'Không thể kết nối tới máy chủ.',
       });
     } finally {
-      // ✅ Dù thành công hay lỗi cũng đóng modal
       onClose();
     }
   };
@@ -145,29 +171,29 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
       setQuantity(prev => prev - 1);
     }
   };
-  
+
 
   const handleVariantSelect = (type, value) => {
-  if (type === "size") {
-    setSelectedSize(value);
-  } else if (type === "color") {
-    setSelectedColor(value);
-  }
+    if (type === "size") {
+      setSelectedSize(value);
+    } else if (type === "color") {
+      setSelectedColor(value);
+    }
 
-  const variant = productDetail?.productVariants?.find(
-    (v) =>
-      v.size?.toLowerCase() ===
+    const variant = productDetail?.productVariants?.find(
+      (v) =>
+        v.size?.toLowerCase() ===
         (type === "size" ? value.toLowerCase() : selectedSize?.toLowerCase()) &&
-      v.color?.toLowerCase() ===
+        v.color?.toLowerCase() ===
         (type === "color" ? value.toLowerCase() : selectedColor?.toLowerCase())
-  );
+    );
 
-  if (variant?.variantImageUrl) {
-    setDisplayImage(variant.variantImageUrl);
-  } else {
-    setDisplayImage(productDetail?.imageUrl || product.imageUrl || product.image);
-  }
-};
+    if (variant?.variantImageUrl) {
+      setDisplayImage(variant.variantImageUrl);
+    } else {
+      setDisplayImage(productDetail?.imageUrl || product.imageUrl || product.image);
+    }
+  };
 
 
   return (

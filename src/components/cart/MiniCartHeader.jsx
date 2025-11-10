@@ -8,56 +8,58 @@ const MiniCartHeader = () => {
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
-  const fetchCartData = async () => {
-    try {
-      const res = await getCart();
-      const items = Array.isArray(res?.cartDetails) ? res.cartDetails : [];
+    const fetchCartData = async () => {
+      try {
+        const res = await getCart();
+        const items = Array.isArray(res?.cartDetails) ? res.cartDetails : [];
 
-      const itemsWithDetails = await Promise.all(
-        items.map(async (item) => {
-          const idProduct = item.productVariant?.productId;
-          const baseItem = {
-            id: item.id,
-            productVariantId: item.productVariantId,
-            idProduct,
-            quantity: item.quantity,
-            price: item.unitPrice,
-            color: item.productVariant?.color || "N/A",
-            size: item.productVariant?.size || "N/A",
-            image: item.productVariant?.variantImageUrl || "/images/default.jpg",
-          };
+        const itemsWithDetails = await Promise.all(
+          items.map(async (item) => {
+            const idProduct = item.productVariant?.productId;
+            const baseItem = {
+              id: item.id,
+              productVariantId: item.productVariantId,
+              idProduct,
+              quantity: item.quantity,
+              price: item.unitPrice,
+              color: item.productVariant?.color || "N/A",
+              size: item.productVariant?.size || "N/A",
+              image: item.productVariant?.variantImageUrl || "/images/default.jpg",
+            };
 
-          try {
-            const productRes = await getProductDetail(idProduct);
-            const productName = productRes?.data?.name || "Unnamed Product";
-            return { ...baseItem, productName };
-          } catch (err) {
-            console.error(`Error fetching product ${idProduct}:`, err);
-            return { ...baseItem, productName: "Unknown Product" };
-          }
-        })
-      );
+            try {
+              const productRes = await getProductDetail(idProduct);
+              const productName = productRes?.data?.name || "Unnamed Product";
+              return { ...baseItem, productName };
+            } catch {
+              return { ...baseItem, productName: "Unknown Product" };
+            }
+          })
+        );
 
-      setCartItems(itemsWithDetails);
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      setCartItems([]);
-    }
-  };
+        setCartItems(itemsWithDetails);
 
-  fetchCartData();
+        if (itemsWithDetails.length === 0) {
+          localStorage.removeItem("cart");
+        } else {
+          localStorage.setItem("cart", JSON.stringify(itemsWithDetails));
+        }
 
-  const handleCartUpdated = () => fetchCartData();
-  window.addEventListener("cartUpdated", handleCartUpdated);
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+        setCartItems([]);
+        localStorage.removeItem("cart");
+      }
+    };
 
-  // 🔹 Cleanup event listener khi unmount
-  return () => {
-    window.removeEventListener("cartUpdated", handleCartUpdated);
-  };
-}, []);
+    fetchCartData();
 
-  // Giữ nguyên UI, chỉ chỉnh phần xóa có Swal
-  const handleDeleteItem = async (id) => {
+    const handleCartUpdated = () => fetchCartData();
+    window.addEventListener("cartUpdated", handleCartUpdated);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdated);
+  }, []);
+
+  const handleDeleteItem = async (productVariantId) => {
     const confirm = await Swal.fire({
       title: "Xóa sản phẩm này?",
       text: "Bạn có chắc muốn xóa sản phẩm khỏi giỏ hàng?",
@@ -71,8 +73,24 @@ const MiniCartHeader = () => {
 
     if (confirm.isConfirmed) {
       try {
-        await deleteCartItem(id);
-        setCartItems((prev) => prev.filter((item) => item.id !== id));
+        await deleteCartItem(productVariantId);
+
+        // ✅ Lọc theo productVariantId vì API dùng cái này
+        const updatedCart = cartItems.filter(
+          (item) => item.productVariantId !== productVariantId
+        );
+
+        setCartItems(updatedCart);
+
+        // ✅ Đồng bộ localStorage
+        if (updatedCart.length === 0) {
+          localStorage.removeItem("cart");
+        } else {
+          localStorage.setItem("cart", JSON.stringify(updatedCart));
+        }
+
+        // ✅ Trigger event để component khác (nếu có) reload giỏ hàng
+        window.dispatchEvent(new Event("cartUpdated"));
 
         Swal.fire({
           icon: "success",
@@ -91,7 +109,8 @@ const MiniCartHeader = () => {
     }
   };
 
-   const subtotal = cartItems.reduce(
+
+  const subtotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
@@ -167,13 +186,13 @@ const MiniCartHeader = () => {
                       </div>
                       <a
                         className="mini-product__delete-link far fa-trash-alt"
-                        onClick={() => handleDeleteItem(item.id)}
+                        onClick={() => handleDeleteItem(item.productVariantId)}
                       ></a>
                     </div>
                   ))
                 ) : (
                   <p className="u-s-m-b-15" style={{ textAlign: "center" }}>
-                    Empty Carts 
+                    Empty Carts
                   </p>
                 )}
               </div>
