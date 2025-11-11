@@ -53,7 +53,10 @@ const Checkout = () => {
       };
 
       const res = await createCheckoutOrder(data);
-
+      if (paymentMethod === 'VNPAY' && res.data.redirectUrl) {
+        window.location.href = res.data.redirectUrl;
+        return;
+      }
       Swal.fire({
         icon: 'success',
         title: 'Đặt hàng thành công!',
