@@ -3,7 +3,7 @@ import { getProductVariantById } from '../../services/OrderService'
 
 const OrderList = ({ orders }) => {
   const [productMap, setProductMap] = useState({});
-
+  
   useEffect(() => {
     console.log("📦 Orders received in <OrderList />:", orders);
     if (!Array.isArray(orders)) {
@@ -86,7 +86,7 @@ const OrderList = ({ orders }) => {
     <div className="m-order__list">
       {(orders || []).map((order, index) => {
         const orderDetails = order.orderDetails || [];
-        const hasMultipleProducts = orderDetails.length >= 2;
+        const hasMultipleProducts = orderDetails.length >= 3;
 
         return (
           <div key={order.id || index} className="m-order__get">
@@ -110,7 +110,7 @@ const OrderList = ({ orders }) => {
             </div>
 
             {/* Body - Products List */}
-            <div
+            <div 
               className="manage-o__products"
               style={{
                 maxHeight: hasMultipleProducts ? '400px' : 'none',
@@ -125,8 +125,8 @@ const OrderList = ({ orders }) => {
                 const price = detail.price || 0;
 
                 return (
-                  <div
-                    key={detailIndex}
+                  <div 
+                    key={detailIndex} 
                     className="manage-o__description"
                     style={{
                       marginBottom: detailIndex < orderDetails.length - 1 ? '20px' : '0',
@@ -168,7 +168,7 @@ const OrderList = ({ orders }) => {
             </div>
 
             {/* Footer - Order Summary */}
-            <div
+            <div 
               className="manage-o__footer"
               style={{
                 marginTop: '20px',
@@ -187,12 +187,8 @@ const OrderList = ({ orders }) => {
               <div>
                 <span className="manage-o__text-2 u-c-silver">
                   Total Amount:
-                  <span
-                    className="manage-o__text-2 u-c-secondary"
-                    style={{ fontSize: '18px', fontWeight: 'bold' }}
-                  >
-                    {' '}
-                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalAmount)}
+                  <span className="manage-o__text-2 u-c-secondary" style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                    {' '}₫{order.totalAmount?.toLocaleString()}
                   </span>
                 </span>
               </div>
