@@ -31,7 +31,7 @@ const DashMyOrder = () => {
     fetchOrders(page, statusFilter);
   }, [page, statusFilter]);
   const handleStatusChange = (e) => {
-    setStatusFilter(e.target.value); 
+    setStatusFilter(e.target.value);
     setPage(1);
   };
 
@@ -117,24 +117,239 @@ const DashMyOrder = () => {
 
                           {/* Pagination */}
                           {totalPages > 1 && (
-                            <div className="u-s-p-t-30 d-flex justify-content-center align-items-center">
-                              <button
-                                className="btn btn--e-transparent-brand-b-2 u-s-m-r-8"
-                                disabled={page === 1}
-                                onClick={() => handlePageChange(page - 1)}
-                              >
-                                Prev
-                              </button>
-                              <span>
-                                Page {page} of {totalPages}
-                              </span>
-                              <button
-                                className="btn btn--e-transparent-brand-b-2 u-s-m-l-8"
-                                disabled={page === totalPages}
-                                onClick={() => handlePageChange(page + 1)}
-                              >
-                                Next
-                              </button>
+                            <div className="u-s-p-t-30">
+                              <ul className="shop-p__pagination" style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '8px',
+                                listStyle: 'none',
+                                padding: 0,
+                                margin: 0
+                              }}>
+                                {/* Previous Button */}
+                                <li>
+                                  <button
+                                    className="shop-p__pagination-button"
+                                    disabled={page === 1}
+                                    onClick={() => handlePageChange(page - 1)}
+                                    style={{
+                                      padding: '10px 20px',
+                                      border: '1px solid #ddd',
+                                      background: page === 1 ? '#f5f5f5' : '#fff',
+                                      color: page === 1 ? '#999' : '#333',
+                                      cursor: page === 1 ? 'not-allowed' : 'pointer',
+                                      borderRadius: '4px',
+                                      transition: 'all 0.3s ease',
+                                      fontWeight: '500'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (page !== 1) {
+                                        e.target.style.background = '#f8f8f8';
+                                        e.target.style.borderColor = '#999';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (page !== 1) {
+                                        e.target.style.background = '#fff';
+                                        e.target.style.borderColor = '#ddd';
+                                      }
+                                    }}
+                                  >
+                                    ‹ Prev
+                                  </button>
+                                </li>
+
+                                {/* Page Numbers */}
+                                {(() => {
+                                  const pageNumbers = [];
+                                  const showEllipsisStart = page > 3;
+                                  const showEllipsisEnd = page < totalPages - 2;
+
+                                  // Always show first page
+                                  if (totalPages > 0) {
+                                    pageNumbers.push(
+                                      <li key={1}>
+                                        <button
+                                          onClick={() => handlePageChange(1)}
+                                          style={{
+                                            padding: '10px 16px',
+                                            border: '1px solid #ddd',
+                                            background: page === 1 ? '#ff4500' : '#fff',
+                                            color: page === 1 ? '#fff' : '#333',
+                                            cursor: 'pointer',
+                                            borderRadius: '4px',
+                                            transition: 'all 0.3s ease',
+                                            fontWeight: page === 1 ? 'bold' : '500',
+                                            minWidth: '44px'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            if (page !== 1) {
+                                              e.target.style.background = '#f8f8f8';
+                                              e.target.style.borderColor = '#999';
+                                            }
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            if (page !== 1) {
+                                              e.target.style.background = '#fff';
+                                              e.target.style.borderColor = '#ddd';
+                                            }
+                                          }}
+                                        >
+                                          1
+                                        </button>
+                                      </li>
+                                    );
+                                  }
+
+                                  // Ellipsis after first page
+                                  if (showEllipsisStart) {
+                                    pageNumbers.push(
+                                      <li key="ellipsis-start" style={{
+                                        padding: '10px 8px',
+                                        color: '#999',
+                                        userSelect: 'none'
+                                      }}>
+                                        ...
+                                      </li>
+                                    );
+                                  }
+
+                                  // Pages around current page
+                                  const startPage = Math.max(2, page - 1);
+                                  const endPage = Math.min(totalPages - 1, page + 1);
+
+                                  for (let i = startPage; i <= endPage; i++) {
+                                    pageNumbers.push(
+                                      <li key={i}>
+                                        <button
+                                          onClick={() => handlePageChange(i)}
+                                          style={{
+                                            padding: '10px 16px',
+                                            border: '1px solid #ddd',
+                                            background: page === i ? '#ff4500' : '#fff',
+                                            color: page === i ? '#fff' : '#333',
+                                            cursor: 'pointer',
+                                            borderRadius: '4px',
+                                            transition: 'all 0.3s ease',
+                                            fontWeight: page === i ? 'bold' : '500',
+                                            minWidth: '44px'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            if (page !== i) {
+                                              e.target.style.background = '#f8f8f8';
+                                              e.target.style.borderColor = '#999';
+                                            }
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            if (page !== i) {
+                                              e.target.style.background = '#fff';
+                                              e.target.style.borderColor = '#ddd';
+                                            }
+                                          }}
+                                        >
+                                          {i}
+                                        </button>
+                                      </li>
+                                    );
+                                  }
+
+                                  // Ellipsis before last page
+                                  if (showEllipsisEnd) {
+                                    pageNumbers.push(
+                                      <li key="ellipsis-end" style={{
+                                        padding: '10px 8px',
+                                        color: '#999',
+                                        userSelect: 'none'
+                                      }}>
+                                        ...
+                                      </li>
+                                    );
+                                  }
+
+                                  // Always show last page
+                                  if (totalPages > 1) {
+                                    pageNumbers.push(
+                                      <li key={totalPages}>
+                                        <button
+                                          onClick={() => handlePageChange(totalPages)}
+                                          style={{
+                                            padding: '10px 16px',
+                                            border: '1px solid #ddd',
+                                            background: page === totalPages ? '#ff4500' : '#fff',
+                                            color: page === totalPages ? '#fff' : '#333',
+                                            cursor: 'pointer',
+                                            borderRadius: '4px',
+                                            transition: 'all 0.3s ease',
+                                            fontWeight: page === totalPages ? 'bold' : '500',
+                                            minWidth: '44px'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            if (page !== totalPages) {
+                                              e.target.style.background = '#f8f8f8';
+                                              e.target.style.borderColor = '#999';
+                                            }
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            if (page !== totalPages) {
+                                              e.target.style.background = '#fff';
+                                              e.target.style.borderColor = '#ddd';
+                                            }
+                                          }}
+                                        >
+                                          {totalPages}
+                                        </button>
+                                      </li>
+                                    );
+                                  }
+
+                                  return pageNumbers;
+                                })()}
+
+                                {/* Next Button */}
+                                <li>
+                                  <button
+                                    className="shop-p__pagination-button"
+                                    disabled={page === totalPages}
+                                    onClick={() => handlePageChange(page + 1)}
+                                    style={{
+                                      padding: '10px 20px',
+                                      border: '1px solid #ddd',
+                                      background: page === totalPages ? '#f5f5f5' : '#fff',
+                                      color: page === totalPages ? '#999' : '#333',
+                                      cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                                      borderRadius: '4px',
+                                      transition: 'all 0.3s ease',
+                                      fontWeight: '500'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (page !== totalPages) {
+                                        e.target.style.background = '#f8f8f8';
+                                        e.target.style.borderColor = '#999';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (page !== totalPages) {
+                                        e.target.style.background = '#fff';
+                                        e.target.style.borderColor = '#ddd';
+                                      }
+                                    }}
+                                  >
+                                    Next ›
+                                  </button>
+                                </li>
+                              </ul>
+
+                              {/* Page Info */}
+                              <div style={{
+                                textAlign: 'center',
+                                marginTop: '20px',
+                                fontSize: '14px',
+                                color: '#666',
+                                fontWeight: '400'
+                              }}>
+                                Showing page <strong>{page}</strong> of <strong>{totalPages}</strong>
+                              </div>
                             </div>
                           )}
                         </>

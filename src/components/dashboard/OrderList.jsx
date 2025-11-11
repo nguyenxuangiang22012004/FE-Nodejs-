@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getProductVariantById } from '../../services/OrderService'
+
 const OrderList = ({ orders }) => {
   const [productMap, setProductMap] = useState({});
+
   useEffect(() => {
     console.log("📦 Orders received in <OrderList />:", orders);
     if (!Array.isArray(orders)) {
@@ -12,21 +14,22 @@ const OrderList = ({ orders }) => {
   }, [orders]);
 
   useEffect(() => {
-    const fetchProductRepresentatives = async () => {
-      const newMap = {};
+    const fetchProductVariants = async () => {
+      const newMap = { ...productMap };
+      const variantIdsToFetch = new Set();
 
+      // Collect all variant IDs from all order details
       for (const order of orders || []) {
-        const firstDetail = order.orderDetails?.[0];
-        if (!firstDetail) continue;
-
-        const variantId = firstDetail.productVariantId;
-        if (!variantId) continue;
-
-        if (productMap[variantId]) {
-          newMap[variantId] = productMap[variantId];
-          continue;
+        for (const detail of order.orderDetails || []) {
+          const variantId = detail.productVariantId;
+          if (variantId && !newMap[variantId]) {
+            variantIdsToFetch.add(variantId);
+          }
         }
+      }
 
+      // Fetch all missing variants
+      for (const variantId of variantIdsToFetch) {
         try {
           const res = await getProductVariantById(variantId);
           console.log(res);
@@ -37,13 +40,13 @@ const OrderList = ({ orders }) => {
         }
       }
 
-      setProductMap(newMap);
+      if (variantIdsToFetch.size > 0) {
+        setProductMap(newMap);
+      }
     };
 
-    if (orders?.length) fetchProductRepresentatives();
+    if (orders?.length) fetchProductVariants();
   }, [orders]);
-
-
 
   const getStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
@@ -82,11 +85,8 @@ const OrderList = ({ orders }) => {
   return (
     <div className="m-order__list">
       {(orders || []).map((order, index) => {
-        const firstItem = order.orderDetails?.[0];
-        const variantId = firstItem?.productVariantId;
-        const variant = productMap[variantId]; 
-        const quantity = firstItem?.quantity || 0;
-        const price = firstItem?.price || 0;
+        const orderDetails = order.orderDetails || [];
+        const hasMultipleProducts = orderDetails.length >= 2;
 
         return (
           <div key={order.id || index} className="m-order__get">
@@ -109,40 +109,92 @@ const OrderList = ({ orders }) => {
               </div>
             </div>
 
-            {/* Body */}
-            <div className="manage-o__description">
-              <div className="description__container">
-                <div className="description__img-wrap">
-                  <img
-                    className="u-img-fluid"
-                    src={variant?.variantImageUrl || '/images/default-product.jpg'} // ✅ lấy ảnh từ variant
-                    alt={variant?.variantImageUrl || 'Product'}
-                  />
-                </div>
-                <div className="description-title">
-                  {variant?.product?.name|| 'Unnamed Product'} {/* ✅ tên từ variant */}
-                </div>
+            {/* Body - Products List */}
+            <div
+              className="manage-o__products"
+              style={{
+                maxHeight: hasMultipleProducts ? '400px' : 'none',
+                overflowY: hasMultipleProducts ? 'auto' : 'visible',
+                paddingRight: hasMultipleProducts ? '10px' : '0'
+              }}
+            >
+              {orderDetails.map((detail, detailIndex) => {
+                const variantId = detail.productVariantId;
+                const variant = productMap[variantId];
+                const quantity = detail.quantity || 0;
+                const price = detail.price || 0;
+
+                return (
+                  <div
+                    key={detailIndex}
+                    className="manage-o__description"
+                    style={{
+                      marginBottom: detailIndex < orderDetails.length - 1 ? '20px' : '0',
+                      paddingBottom: detailIndex < orderDetails.length - 1 ? '20px' : '0',
+                      borderBottom: detailIndex < orderDetails.length - 1 ? '1px solid #e0e0e0' : 'none'
+                    }}
+                  >
+                    <div className="description__container">
+                      <div className="description__img-wrap">
+                        <img
+                          className="u-img-fluid"
+                          src={variant?.variantImageUrl || '/images/default-product.jpg'}
+                          alt={variant?.product?.name || 'Product'}
+                        />
+                      </div>
+                      <div className="description-title">
+                        {variant?.product?.name || 'Unnamed Product'}
+                      </div>
+                    </div>
+                    <div className="description__info-wrap">
+                      <div>
+                        <span className="manage-o__text-2 u-c-silver">
+                          Quantity:
+                          <span className="manage-o__text-2 u-c-secondary"> {quantity}</span>
+                        </span>
+                      </div>
+                      <div>
+                        <span className="manage-o__text-2 u-c-silver">
+                          Price:
+                          <span className="manage-o__text-2 u-c-secondary">
+                            ₫{price?.toLocaleString()}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer - Order Summary */}
+            <div
+              className="manage-o__footer"
+              style={{
+                marginTop: '20px',
+                paddingTop: '20px',
+                borderTop: '2px solid #e0e0e0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <div>
+                <span className={`manage-o__badge ${getStatusBadge(order.status)}`}>
+                  {getStatusText(order.status)}
+                </span>
               </div>
-              <div className="description__info-wrap">
-                <div>
-                  <span className={`manage-o__badge ${getStatusBadge(order.status)}`}>
-                    {getStatusText(order.status)}
+              <div>
+                <span className="manage-o__text-2 u-c-silver">
+                  Total Amount:
+                  <span
+                    className="manage-o__text-2 u-c-secondary"
+                    style={{ fontSize: '18px', fontWeight: 'bold' }}
+                  >
+                    {' '}
+                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalAmount)}
                   </span>
-                </div>
-                <div>
-                  <span className="manage-o__text-2 u-c-silver">
-                    Quantity:
-                    <span className="manage-o__text-2 u-c-secondary"> {quantity}</span>
-                  </span>
-                </div>
-                <div>
-                  <span className="manage-o__text-2 u-c-silver">
-                    Total:
-                    <span className="manage-o__text-2 u-c-secondary">
-                      ₫{order.totalAmount?.toLocaleString()}
-                    </span>
-                  </span>
-                </div>
+                </span>
               </div>
             </div>
           </div>
