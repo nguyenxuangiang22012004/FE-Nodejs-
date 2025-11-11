@@ -56,3 +56,4 @@ export const getProductImages = async (id) => {
   const res = await api.get(`/new-arrivals/product-images/${id}`);
   return res;
 };
+
