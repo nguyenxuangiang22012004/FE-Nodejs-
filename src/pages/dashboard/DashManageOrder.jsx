@@ -1,39 +1,15 @@
 import React from 'react';
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import DashboardStats from '../../components/dashboard/DashboardStats';
+import { useLocation } from 'react-router-dom';
 const DashManageOrder = () => {
   // Dữ liệu mẫu cho đơn hàng
-  const orderData = {
-    orderNumber: '#305423126',
-    orderDate: '26 Oct 2016 09:08:37',
-    total: '$16.00',
-    deliveredDate: '26 Oct 2016',
-    shippingMethod: 'Standard',
-    items: [
-      {
-        name: 'Yellow Wireless Headphone',
-        quantity: 1,
-        price: '$16.00',
-        image: 'images/product/electronic/product3.jpg'
-      }
-    ],
-    shippingAddress: {
-      name: 'John Doe',
-      address: '4247 Ashford Drive Virginia - VA-20006 - USA',
-      phone: '(+0) 900901904'
-    },
-    billingAddress: {
-      name: 'John Doe',
-      address: '4247 Ashford Drive Virginia - VA-20006 - USA',
-      phone: '(+0) 900901904'
-    },
-    summary: {
-      subtotal: '$16.00',
-      shippingFee: '$16.00',
-      total: '$30.00',
-      paymentMethod: 'Cash on Delivery'
-    }
-  };
+  const location = useLocation();
+  const orderData = location.state?.order; 
+
+  if (!orderData) {
+    return <div>❌ No order data available</div>;
+  }
 
   return (
     <>

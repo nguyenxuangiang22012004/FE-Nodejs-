@@ -58,7 +58,7 @@ function AppRoutes() {
           <Route path="/dashboard/dash-address-default" element={<DashAddressMakeDefault />} />
           <Route path="/dashboard/dash-cancellation" element={<DashCancellation />} />
           <Route path="/dashboard/dash-edit-profile" element={<DashEditProfile />} />
-          <Route path="/dashboard/dash-manage-order" element={<DashManageOrder />} />
+          <Route path="/dashboard/dash-manage-order/:id" element={<DashManageOrder />} />
           <Route path="/dashboard/dash-my-order" element={<DashMyOrder />} />
           <Route path="/dashboard/dash-my-profile" element={<DashMyProfile />} />
           <Route path="/dashboard/dash-payment-option" element={<DashPaymentOption />} />

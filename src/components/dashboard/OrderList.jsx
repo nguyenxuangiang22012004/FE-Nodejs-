@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { getProductVariantById } from '../../services/OrderService'
+import { Link } from 'react-router-dom';
 
 const OrderList = ({ orders }) => {
   const [productMap, setProductMap] = useState({});
-  
+
   useEffect(() => {
     console.log("📦 Orders received in <OrderList />:", orders);
     if (!Array.isArray(orders)) {
@@ -32,7 +33,7 @@ const OrderList = ({ orders }) => {
       for (const variantId of variantIdsToFetch) {
         try {
           const res = await getProductVariantById(variantId);
-          console.log(res);
+          console.log("Variant", res);
           newMap[variantId] = res.data;
         } catch (error) {
           console.error(`❌ Failed to load product for variant ${variantId}:`, error);
@@ -48,7 +49,7 @@ const OrderList = ({ orders }) => {
     if (orders?.length) fetchProductVariants();
   }, [orders]);
 
-  const getStatusBadge = (status) => {
+   const getStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
       case 'Processing':
       case 'Pending':
@@ -81,12 +82,36 @@ const OrderList = ({ orders }) => {
         return status || 'Unknown';
     }
   };
+  
+  const groupProductsByProductId = (orderDetails) => {
+    const grouped = {};
+    
+    orderDetails.forEach(detail => {
+      const variantId = detail.productVariantId;
+      const variant = productMap[variantId];
+      const productId = variant?.product?.id;
+      
+      if (productId) {
+        if (!grouped[productId]) {
+          grouped[productId] = {
+            variant: variant,
+            totalQuantity: 0,
+            variantId: variantId
+          };
+        }
+        grouped[productId].totalQuantity += (detail.quantity || 0);
+      }
+    });
+    
+    return Object.values(grouped);
+  };
 
   return (
     <div className="m-order__list">
       {(orders || []).map((order, index) => {
         const orderDetails = order.orderDetails || [];
-        const hasMultipleProducts = orderDetails.length >= 3;
+        const groupedProducts = groupProductsByProductId(orderDetails);
+        const hasMultipleProducts = groupedProducts.length >= 3;
 
         return (
           <div key={order.id || index} className="m-order__get">
@@ -103,14 +128,19 @@ const OrderList = ({ orders }) => {
                 </div>
                 <div>
                   <div className="dash__link dash__link--brand">
-                    <a href="#">MANAGE</a>
+                    <Link
+                      to={`/dashboard/dash-manage-order/${order.id}`}
+                      state={{ order }} 
+                    >
+                      MANAGE
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Body - Products List */}
-            <div 
+            <div
               className="manage-o__products"
               style={{
                 maxHeight: hasMultipleProducts ? '400px' : 'none',
@@ -118,20 +148,18 @@ const OrderList = ({ orders }) => {
                 paddingRight: hasMultipleProducts ? '10px' : '0'
               }}
             >
-              {orderDetails.map((detail, detailIndex) => {
-                const variantId = detail.productVariantId;
-                const variant = productMap[variantId];
-                const quantity = detail.quantity || 0;
-                const price = detail.price || 0;
+              {groupedProducts.map((product, productIndex) => {
+                const variant = product.variant;
+                const totalQuantity = product.totalQuantity;
 
                 return (
-                  <div 
-                    key={detailIndex} 
+                  <div
+                    key={productIndex}
                     className="manage-o__description"
                     style={{
-                      marginBottom: detailIndex < orderDetails.length - 1 ? '20px' : '0',
-                      paddingBottom: detailIndex < orderDetails.length - 1 ? '20px' : '0',
-                      borderBottom: detailIndex < orderDetails.length - 1 ? '1px solid #e0e0e0' : 'none'
+                      marginBottom: productIndex < groupedProducts.length - 1 ? '20px' : '0',
+                      paddingBottom: productIndex < groupedProducts.length - 1 ? '20px' : '0',
+                      borderBottom: productIndex < groupedProducts.length - 1 ? '1px solid #e0e0e0' : 'none'
                     }}
                   >
                     <div className="description__container">
@@ -150,15 +178,7 @@ const OrderList = ({ orders }) => {
                       <div>
                         <span className="manage-o__text-2 u-c-silver">
                           Quantity:
-                          <span className="manage-o__text-2 u-c-secondary"> {quantity}</span>
-                        </span>
-                      </div>
-                      <div>
-                        <span className="manage-o__text-2 u-c-silver">
-                          Price:
-                          <span className="manage-o__text-2 u-c-secondary">
-                            ₫{price?.toLocaleString()}
-                          </span>
+                          <span className="manage-o__text-2 u-c-secondary"> {totalQuantity}</span>
                         </span>
                       </div>
                     </div>
@@ -168,7 +188,7 @@ const OrderList = ({ orders }) => {
             </div>
 
             {/* Footer - Order Summary */}
-            <div 
+            <div
               className="manage-o__footer"
               style={{
                 marginTop: '20px',
