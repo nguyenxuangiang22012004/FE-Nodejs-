@@ -64,8 +64,8 @@ const Checkout = () => {
         timer: 2500,
       });
 
-      setCartItems([]);
-      window.dispatchEvent(new Event("cartUpdated"));
+      // setCartItems([]);
+      // window.dispatchEvent(new Event("cartUpdated"));
 
     } catch (error) {
       Swal.fire({
