@@ -40,7 +40,7 @@ const Checkout = () => {
         shippingAddressId: userAddress.id,
         paymentMethodId: paymentMethods.find(p => p.type === paymentMethod)?.id,
         couponId: selectedCoupon ? selectedCoupon.id : null,
-        totalAmount: grandTotal,
+        totalAmount: subtotal,
         shippingCost: discountedShipping,
         notes: document.getElementById('order-note')?.value || "",
 

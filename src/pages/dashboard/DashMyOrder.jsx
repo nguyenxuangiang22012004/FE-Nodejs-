@@ -10,7 +10,7 @@ const DashMyOrder = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
-  const limit = 5;
+  const limit = 3;
 
   const fetchOrders = async (currentPage) => {
     try {
@@ -77,7 +77,9 @@ const DashMyOrder = () => {
               <div className="row">
                 <div className="col-lg-3 col-md-12">
                   <DashboardSidebar activePage="orders" />
-                  <DashboardStats />
+                  <DashboardStats ordersPlaced={orders.length}
+                    canceledOrders={orders.filter(o => o.status === 'Cancelled').length}
+                    wishlist={0} />
                 </div>
                 <div className="col-lg-9 col-md-12">
                   <div className="dash__box dash__box--shadow dash__box--radius dash__box--bg-white u-s-m-b-30">
