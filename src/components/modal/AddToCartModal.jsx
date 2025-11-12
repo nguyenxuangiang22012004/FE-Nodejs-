@@ -5,6 +5,7 @@ import { addToCart } from '../../services/CartService';
 import { getProductDetail } from '../../services/NewArrivalService';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+
 const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
@@ -13,6 +14,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
   const [productDetail, setProductDetail] = useState(null);
   const [displayImage, setDisplayImage] = useState('');
   const MySwal = withReactContent(Swal);
+
   useEffect(() => {
     const fetchProductDetail = async () => {
       if (isOpen && product?.id) {
@@ -30,6 +32,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
   }, [isOpen, product?.id]);
 
   if (!isOpen || !product) return null;
+
   const sizes = product.sizes || ['S', 'M', 'L', 'XL', 'XXL'];
   const colors =
     (product.colors && product.colors.length > 0)
@@ -70,6 +73,28 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         text: 'Vui lòng chọn lại màu và size khác.',
       });
       onClose();
+      return;
+    }
+
+    // Kiểm tra số lượng tồn kho trước khi thêm vào giỏ
+    if (selectedVariant.stockQuantity <= 0) {
+      MySwal.fire({
+        icon: 'error',
+        title: 'Sản phẩm tạm hết hàng',
+        text: 'Vui lòng chọn size hoặc màu khác.',
+        timer: 2000,
+      });
+      return;
+    }
+
+    // Kiểm tra số lượng yêu cầu có vượt quá tồn kho không
+    if (quantity > selectedVariant.stockQuantity) {
+      MySwal.fire({
+        icon: 'warning',
+        title: 'Không đủ hàng!',
+        text: `Chỉ còn ${selectedVariant.stockQuantity} sản phẩm trong kho.`,
+        timer: 2000,
+      });
       return;
     }
 
@@ -154,8 +179,6 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
     }
   };
 
-
-
   const handleClose = () => {
     setShowSuccess(false);
     setSelectedSize('');
@@ -172,7 +195,6 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
     }
   };
 
-
   const handleVariantSelect = (type, value) => {
     if (type === "size") {
       setSelectedSize(value);
@@ -188,13 +210,30 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         (type === "color" ? value.toLowerCase() : selectedColor?.toLowerCase())
     );
 
+    // Kiểm tra số lượng tồn kho
+    if (variant && variant.stockQuantity <= 0) {
+      MySwal.fire({
+        icon: 'warning',
+        title: 'Sản phẩm tạm hết hàng',
+        text: 'Vui lòng chọn size hoặc màu khác.',
+        timer: 2000,
+      });
+      
+      // Reset lựa chọn vừa chọn
+      if (type === "size") {
+        setSelectedSize('');
+      } else if (type === "color") {
+        setSelectedColor('');
+      }
+      return;
+    }
+
     if (variant?.variantImageUrl) {
       setDisplayImage(variant.variantImageUrl);
     } else {
       setDisplayImage(productDetail?.imageUrl || product.imageUrl || product.image);
     }
   };
-
 
   return (
     <>
@@ -228,15 +267,24 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                     {selectedSize && <span className="variant-selected">{selectedSize}</span>}
                   </div>
                   <div className="size-options">
-                    {sizes.map((size) => (
-                      <button
-                        key={size}
-                        className={`size-btn ${selectedSize === size ? 'selected' : ''}`}
-                        onClick={() => handleVariantSelect("size", size)}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                    {sizes.map((size) => {
+                      // Kiểm tra xem size này có biến thể nào còn hàng không
+                      const hasStock = productDetail?.productVariants?.some(
+                        (v) => v.size?.toLowerCase() === size.toLowerCase() && v.stockQuantity > 0
+                      );
+                      
+                      return (
+                        <button
+                          key={size}
+                          className={`size-btn ${selectedSize === size ? 'selected' : ''} ${!hasStock ? 'out-of-stock' : ''}`}
+                          onClick={() => hasStock && handleVariantSelect("size", size)}
+                          disabled={!hasStock}
+                        >
+                          {size}
+                          {!hasStock && <span className="stock-label">Hết</span>}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -246,16 +294,24 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                     {selectedColor && <span className="variant-selected">{selectedColor}</span>}
                   </div>
                   <div className="color-options">
-                    {colors.map((color) => (
-                      <div
-                        key={color.name}
-                        className={`color-item ${selectedColor === color.name ? 'selected' : ''}`}
-                        onClick={() => handleVariantSelect("color", color.name)}
-
-                        style={{ backgroundColor: color.value }}
-                        title={color.name}
-                      />
-                    ))}
+                    {colors.map((color) => {
+                      // Kiểm tra xem màu này có biến thể nào còn hàng không
+                      const hasStock = productDetail?.productVariants?.some(
+                        (v) => v.color?.toLowerCase() === color.name.toLowerCase() && v.stockQuantity > 0
+                      );
+                      
+                      return (
+                        <div
+                          key={color.name}
+                          className={`color-item ${selectedColor === color.name ? 'selected' : ''} ${!hasStock ? 'out-of-stock' : ''}`}
+                          onClick={() => hasStock && handleVariantSelect("color", color.name)}
+                          style={{ backgroundColor: color.value }}
+                          title={`${color.name}${!hasStock ? ' - Hết hàng' : ''}`}
+                        >
+                          {!hasStock && <span className="color-stock-label">✕</span>}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -517,28 +573,53 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
           transform: scale(1.05);
         }
 
+        .size-btn.out-of-stock {
+          opacity: 0.4;
+          cursor: not-allowed;
+          position: relative;
+          background: #f8f9fa;
+          color: #adb5bd;
+        }
+
+        .size-btn.out-of-stock:hover {
+          border-color: #dee2e6;
+          transform: none;
+          box-shadow: none;
+        }
+
+        .stock-label {
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background: #e74c3c;
+          color: white;
+          font-size: 9px;
+          padding: 2px 6px;
+          border-radius: 10px;
+          font-weight: 700;
+        }
+
         .color-options {
           display: flex;
           flex-wrap: wrap;
           gap: 12px;
         }
 
-       .color-item {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s;
-  border: 3px solid transparent;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15); /* viền nhẹ cho màu sáng */
-}
+        .color-item {
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.2s;
+          border: 3px solid transparent;
+          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+        }
 
-/* Riêng màu trắng thì viền đậm hơn để nổi bật */
-.color-item[title="Trắng"],
-.color-item[title="White"] {
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
-}
+        .color-item[title*="Trắng"],
+        .color-item[title*="White"] {
+          box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+        }
 
         .color-item:hover {
           transform: scale(1.1);
@@ -560,6 +641,27 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
           font-size: 18px;
           font-weight: bold;
           text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-item.out-of-stock {
+          opacity: 0.3;
+          cursor: not-allowed;
+          filter: grayscale(60%);
+        }
+
+        .color-item.out-of-stock:hover {
+          transform: none;
+        }
+
+        .color-stock-label {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: #e74c3c;
+          font-size: 24px;
+          font-weight: bold;
+          text-shadow: 0 0 3px white, 0 0 5px white;
         }
 
         .quantity-selector {
