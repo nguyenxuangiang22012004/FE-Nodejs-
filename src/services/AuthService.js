@@ -89,18 +89,21 @@ export const loginWithFacebook = () => {
   }
 };
 
-/**
- * Đăng xuất — backend xóa cookie
- */
+
 export const logout = async () => {
   try {
-    await api.post('/auth/logout', {}, { withCredentials: true });
+    // Sửa từ POST sang DELETE để khớp với backend
+    const res = await api.delete('/auth/logout', { 
+      withCredentials: true 
+    });
+    console.log('✅ Logout API success:', res);
   } catch (err) {
     console.warn('⚠️ Lỗi khi gọi API logout:', err.message);
+    // Không throw error để vẫn tiếp tục logout ở frontend
+  } finally {
+    localStorage.removeItem('user');
+    window.dispatchEvent(new Event('auth-changed'));
   }
-
-  localStorage.removeItem('user');
-  window.dispatchEvent(new Event('auth-changed'));
 };
 
 export const requestPasswordReset = async (email) => {
