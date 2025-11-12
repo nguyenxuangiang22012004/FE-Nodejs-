@@ -3,11 +3,13 @@ import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import { useLocation } from 'react-router-dom';
 import { updateUserProfile, getUserProfile } from "../../services/DashboardService";
 import DashboardStats from '../../components/dashboard/DashboardStats';
+import Swal from 'sweetalert2';
 
 const DashEditProfile = () => {
   const location = useLocation();
   const userData = location.state?.user;
   const [formData, setFormData] = useState(null);
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -21,7 +23,6 @@ const DashEditProfile = () => {
         gender: userData.gender || "",
       });
     } else {
-      // fallback: gọi API hoặc để trống
       (async () => {
         const res = await getUserProfile();
         if (res?.success) {
@@ -31,31 +32,82 @@ const DashEditProfile = () => {
     }
   }, [userData]);
 
-  // Hàm xử lý thay đổi input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    // Xóa lỗi nếu user sửa lại
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (formData.phoneNumber && !/^[0-9]{8,15}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = "Phone number must be 8–15 digits";
+    }
+
+    if (formData.birthday && new Date(formData.birthday) > new Date()) {
+      newErrors.birthday = "Birthday cannot be in the future";
+    }
+
+    if (formData.gender && !["male", "female"].includes(formData.gender)) {
+      newErrors.gender = "Please select a valid gender";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!validateForm()) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid form!",
+        text: "Please fix the highlighted fields.",
+        confirmButtonColor: "#d33",
+      });
+      return;
+    }
 
+    setLoading(true);
     try {
       const res = await updateUserProfile(formData);
-      window.alert("✅ Profile updated successfully!");
+      Swal.fire({
+        icon: "success",
+        title: "Profile Updated",
+        text: "Your profile has been updated successfully!",
+        confirmButtonColor: "#3085d6",
+      });
     } catch (err) {
       console.error(err);
-      window.alert("❌ Failed to update profile");
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: "Something went wrong while updating your profile.",
+        confirmButtonColor: "#d33",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Add loading state check
   if (!formData) {
     return (
       <div className="u-s-p-y-60">
@@ -70,7 +122,7 @@ const DashEditProfile = () => {
 
   return (
     <>
-      {/*====== Breadcrumb ======*/}
+      {/*====== Breadcrumb ======*/} 
       <div className="u-s-p-y-60">
         <div className="section__content">
           <div className="container">
@@ -90,7 +142,7 @@ const DashEditProfile = () => {
         </div>
       </div>
 
-      {/*====== Edit Profile ======*/}
+      {/*====== Edit Profile ======*/} 
       <div className="u-s-p-b-60">
         <div className="section__content">
           <div className="dash">
@@ -116,7 +168,7 @@ const DashEditProfile = () => {
                               FIRST NAME *
                             </label>
                             <input
-                              className="input-text input-text--primary-style"
+                              className={`input-text input-text--primary-style ${errors.firstName ? "border-danger" : ""}`}
                               type="text"
                               id="reg-fname"
                               name="firstName"
@@ -124,6 +176,9 @@ const DashEditProfile = () => {
                               value={formData.firstName || ""}
                               onChange={handleChange}
                             />
+                            {errors.firstName && (
+                              <span className="text-danger small">{errors.firstName}</span>
+                            )}
                           </div>
 
                           <div className="u-s-m-b-30">
@@ -131,7 +186,7 @@ const DashEditProfile = () => {
                               LAST NAME *
                             </label>
                             <input
-                              className="input-text input-text--primary-style"
+                              className={`input-text input-text--primary-style ${errors.lastName ? "border-danger" : ""}`}
                               type="text"
                               id="reg-lname"
                               name="lastName"
@@ -139,6 +194,9 @@ const DashEditProfile = () => {
                               value={formData.lastName || ""}
                               onChange={handleChange}
                             />
+                            {errors.lastName && (
+                              <span className="text-danger small">{errors.lastName}</span>
+                            )}
                           </div>
                         </div>
 
@@ -147,13 +205,16 @@ const DashEditProfile = () => {
                             <span className="gl-label">BIRTHDAY</span>
                             <div className="gl-dob">
                               <input
-                                className="input-text input-text--primary-style"
+                                className={`input-text input-text--primary-style ${errors.birthday ? "border-danger" : ""}`}
                                 type="date"
                                 name="birthday"
                                 value={formData.birthday?.split('T')[0] || ''}
                                 onChange={handleChange}
                               />
                             </div>
+                            {errors.birthday && (
+                              <span className="text-danger small">{errors.birthday}</span>
+                            )}
                           </div>
 
                           <div className="u-s-m-b-30">
@@ -161,7 +222,7 @@ const DashEditProfile = () => {
                               GENDER
                             </label>
                             <select
-                              className="select-box select-box--primary-style u-w-100"
+                              className={`select-box select-box--primary-style u-w-100 ${errors.gender ? "border-danger" : ""}`}
                               id="gender"
                               name="gender"
                               value={formData.gender || ""}
@@ -171,6 +232,9 @@ const DashEditProfile = () => {
                               <option value="male">Male</option>
                               <option value="female">Female</option>
                             </select>
+                            {errors.gender && (
+                              <span className="text-danger small">{errors.gender}</span>
+                            )}
                           </div>
                         </div>
 
@@ -180,7 +244,7 @@ const DashEditProfile = () => {
                               E-MAIL *
                             </label>
                             <input
-                              className="input-text input-text--primary-style"
+                              className={`input-text input-text--primary-style ${errors.email ? "border-danger" : ""}`}
                               type="email"
                               id="reg-email"
                               name="email"
@@ -188,6 +252,9 @@ const DashEditProfile = () => {
                               value={formData.email || ""}
                               onChange={handleChange}
                             />
+                            {errors.email && (
+                              <span className="text-danger small">{errors.email}</span>
+                            )}
                           </div>
 
                           <div className="u-s-m-b-30">
@@ -195,7 +262,7 @@ const DashEditProfile = () => {
                               PHONE
                             </label>
                             <input
-                              className="input-text input-text--primary-style"
+                              className={`input-text input-text--primary-style ${errors.phoneNumber ? "border-danger" : ""}`}
                               type="text"
                               id="reg-phone"
                               name="phoneNumber"
@@ -203,6 +270,9 @@ const DashEditProfile = () => {
                               value={formData.phoneNumber || ""}
                               onChange={handleChange}
                             />
+                            {errors.phoneNumber && (
+                              <span className="text-danger small">{errors.phoneNumber}</span>
+                            )}
                           </div>
                         </div>
 

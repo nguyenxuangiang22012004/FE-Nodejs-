@@ -12,11 +12,11 @@ const DashboardSidebar = ({ activePage }) => {
             Hello, {JSON.parse(localStorage.getItem("user"))?.firstName || "User"} {JSON.parse(localStorage.getItem("user"))?.lastName || ""}
           </span>
           <ul className="dash__f-list">
-            <li>
+            {/* <li>
               <Link className={activePage === 'dashboard' ? 'dash-active' : ''} to="/dashboard">
                 Manage My Account
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link className={activePage === 'profile' ? 'dash-active' : ''} to="/dashboard/dash-my-profile">
                 My Profile

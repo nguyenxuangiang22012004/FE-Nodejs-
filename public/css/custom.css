@@ -106,3 +106,18 @@
     cursor: default;
   }
 }
+
+.text-danger.small {
+  color: #e63946; /* đỏ nổi bật hơn */
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: block;
+  margin-top: 4px;
+  animation: fadeInError 0.3s ease-in-out;
+}
+
+/* Thêm viền đỏ cho input bị lỗi */
+.border-danger {
+  border-color: #e63946 !important;
+  box-shadow: 0 0 4px rgba(230, 57, 70, 0.4);
+}

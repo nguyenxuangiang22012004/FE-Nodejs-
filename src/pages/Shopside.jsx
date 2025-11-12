@@ -11,6 +11,7 @@ import RatingFilter from '../components/shopside/RatingFilter';
 import ShippingFilter from '../components/shopside/ShippingFilter';
 import SizeFilter from "../components/shopside/SizeFilter";
 import { getAllProducts } from "../services/NewArrivalService";
+
 const ShopSide = () => {
     const[isGridActive, setIsGridActive] = useState(true);
     const [products, setProducts] = useState([]);
@@ -29,10 +30,18 @@ const ShopSide = () => {
                 const filters = {
                     q : search || "",
                     subcategoryId: searchParams.get("id") || "",
+                    minPrice: searchParams.get("minPrice") || "",
+                    maxPrice: searchParams.get("maxPrice") || "",
                     limit,
                     offset,
                 };
+                
+                console.log("Filters being sent:", filters);
+                console.log("Current URL params:", searchParams.toString());
+                
                 const res = await getAllProducts(filters);
+                console.log("API Response:", res);
+                
                 setProducts(res.data || []);
                 setTotal(res.pagination.total || 0);
             } catch (error) {
@@ -81,35 +90,18 @@ const ShopSide = () => {
                                         <CategoryFilter />
                                     </div>
 
-                                    {/* Rating Filter */}
-                                    <div className="u-s-m-b-30">
+                                    {/* <div className="u-s-m-b-30">
                                         <RatingFilter />
                                     </div>
 
-                                    {/* Shipping Filter */}
                                     <div className="u-s-m-b-30">
                                         <ShippingFilter />
-                                    </div>
+                                    </div> */}
 
-                                    {/* Price Filter */}
-                                    <div className="u-s-m-b-30">
+                                    {/* <div className="u-s-m-b-30">
                                         <PriceFilter />
-                                    </div>
+                                    </div> */}
 
-                                    {/* Manufacturer Filter */}
-                                    <div className="u-s-m-b-30">
-                                        <ManufacturerFilter />
-                                    </div>
-
-                                    {/* Color Filter */}
-                                    <div className="u-s-m-b-30">
-                                        <ColorFilter />
-                                    </div>
-
-                                    {/* Size Filter */}
-                                    <div className="u-s-m-b-30">
-                                        <SizeFilter />
-                                    </div>
                                 </div>
                             </div>
                         </div>

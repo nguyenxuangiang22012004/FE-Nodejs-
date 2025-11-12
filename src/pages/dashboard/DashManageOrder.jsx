@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getOrderById, getProductVariantById } from '../../services/OrderService';
+import { getOrderById, getProductVariantById, cancelOrder } from '../../services/OrderService';
 import { getUserAddressById } from "../../services/AddressService";
 import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import DashboardStats from '../../components/dashboard/DashboardStats';
+import Swal from "sweetalert2";
 
 const DashManageOrder = () => {
   const { id } = useParams();
@@ -21,7 +22,34 @@ const DashManageOrder = () => {
       currency: 'VND'
     }).format(amount);
   };
+  const handleCancelOrder = async () => {
+    if (!orderData?.id) return;
 
+    const { value: cancelReason } = await Swal.fire({
+      title: "Hủy đơn hàng",
+      input: "text",
+      inputLabel: "Nhập lý do hủy đơn hàng",
+      inputPlaceholder: "Lý do hủy...",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Xác nhận hủy",
+      cancelButtonText: "Hủy"
+    });
+
+    if (cancelReason !== undefined) {
+      try {
+        // Gọi API hủy đơn, chỉ gửi note
+        await cancelOrder(orderData.id, cancelReason || "");
+
+        Swal.fire("Đã hủy!", "Đơn hàng đã được hủy.", "success");
+
+        setOrderData(prev => ({ ...prev, status: "cancelled" }));
+      } catch (err) {
+        Swal.fire("Lỗi!", err.response?.data?.message || err.message || "Hủy đơn thất bại", "error");
+      }
+    }
+  };
   // Hàm render timeline dựa theo status
   const renderTimeline = (status) => {
     const timelineSteps = [
@@ -44,6 +72,8 @@ const DashManageOrder = () => {
       'completed': 3,
       'cancelled': -1
     };
+
+
 
     const currentStepIndex = statusMap[status?.toLowerCase()] || 0;
 
@@ -265,12 +295,22 @@ const DashManageOrder = () => {
                             </span>
                           </div>
                         </div>
-
+                        <div className="dash-l-r" style={{ justifyContent: "flex-end", marginTop: "10px" }}>
+                          {orderData?.status !== "cancelled" && orderData?.status !== "delivered" && (
+                            <button
+                              className="btn btn--e-brand-b-2"
+                              style={{ backgroundColor: "#d33", border: "none" }}
+                              onClick={handleCancelOrder}
+                            >
+                              Cancel Order
+                            </button>
+                          )}
+                        </div>
                         {/* Order Timeline - Dynamic */}
                         {renderTimeline(orderData?.status)}
 
                         {/* Order Items - With Scroll */}
-                        <div 
+                        <div
                           style={hasScroll ? {
                             maxHeight: '400px',
                             overflowY: 'auto',
@@ -323,6 +363,11 @@ const DashManageOrder = () => {
                                         </span>
                                       </span>
                                     </div>
+                                    <div>
+                                      <span className="manage-o__text-2 u-c-silver">
+                                        Note: <span className="manage-o__text-2 u-c-secondary">{item?.note || "No note"}</span>
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -343,7 +388,7 @@ const DashManageOrder = () => {
                         <div className="dash__pad-3">
                           <h2 className="dash__h2 u-s-m-b-8">Shipping Address</h2>
                           <h2 className="dash__h2 u-s-m-b-8">
-                            {shippingAddress 
+                            {shippingAddress
                               ? `${shippingAddress.firstName || ''} ${shippingAddress.lastName || ''}`.trim()
                               : orderData?.shippingAddress?.name || 'N/A'}
                           </h2>
@@ -390,7 +435,7 @@ const DashManageOrder = () => {
                             <div className="manage-o__text-2 u-c-secondary">
                               <strong>
                                 {formatVND(
-                                  orderData?.payments?.amount || 
+                                  orderData?.payments?.amount ||
                                   ((orderData?.totalAmount || 0) + (orderData?.shippingCost || 0) - (orderData?.discountApplied || 0))
                                 )}
                               </strong>
