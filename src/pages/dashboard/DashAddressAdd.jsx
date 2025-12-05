@@ -6,6 +6,7 @@ import DashboardSidebar from '../../components/dashboard/DashboardSidebar';
 import DashboardStats from '../../components/dashboard/DashboardStats';
 import { addUserAddress } from "../../services/AddressService";
 import Swal from "sweetalert2";
+
 // Fix cho icon marker mặc định của Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -39,13 +40,19 @@ const DashAddressAdd = () => {
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    houseNumber: '', // Số nhà
-    street: '', // Tên đường/phố
+    houseNumber: '',
+    street: '',
+    address: '',
+    city: '',
+    state: '',
+    country: 'Việt Nam'
   });
 
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [selectedLocation, setSelectedLocation] = useState({
     lat: 21.028511,
-    lng: 105.804817, // Hà Nội mặc định
+    lng: 105.804817,
   });
 
   const [searchResults, setSearchResults] = useState([]);
@@ -53,15 +60,112 @@ const DashAddressAdd = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Validation rules
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'firstName':
+        if (!value.trim()) {
+          return 'Vui lòng nhập tên';
+        }
+        if (value.trim().length < 2) {
+          return 'Tên phải có ít nhất 2 ký tự';
+        }
+        if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(value)) {
+          return 'Tên chỉ được chứa chữ cái';
+        }
+        return '';
+
+      case 'lastName':
+        if (!value.trim()) {
+          return 'Vui lòng nhập họ';
+        }
+        if (value.trim().length < 2) {
+          return 'Họ phải có ít nhất 2 ký tự';
+        }
+        if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(value)) {
+          return 'Họ chỉ được chứa chữ cái';
+        }
+        return '';
+
+      case 'phoneNumber':
+        if (!value.trim()) {
+          return 'Vui lòng nhập số điện thoại';
+        }
+        if (!/^0\d{9,10}$/.test(value.replace(/\s/g, ''))) {
+          return 'Số điện thoại không hợp lệ (VD: 0912345678)';
+        }
+        return '';
+
+      case 'houseNumber':
+        if (value && value.length > 50) {
+          return 'Số nhà không được quá 50 ký tự';
+        }
+        return '';
+
+      case 'street':
+      case 'address':
+        if (!value.trim()) {
+          return 'Vui lòng chọn địa chỉ từ gợi ý tìm kiếm';
+        }
+        if (value.trim().length < 5) {
+          return 'Địa chỉ quá ngắn';
+        }
+        return '';
+
+      default:
+        return '';
+    }
+  };
+
+  // Validate toàn bộ form
+  const validateForm = () => {
+    const newErrors = {};
+    const fieldsToValidate = ['firstName', 'lastName', 'phoneNumber', 'street'];
+
+    fieldsToValidate.forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
+      }
+    });
+
+    return newErrors;
+  };
+
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     const fieldName = id.replace('address-', '');
+    
     setFormData((prevState) => ({
       ...prevState,
       [fieldName]: value,
     }));
+
+    // Validate khi người dùng đã touch field
+    if (touched[fieldName]) {
+      const error = validateField(fieldName, value);
+      setErrors(prev => ({
+        ...prev,
+        [fieldName]: error
+      }));
+    }
   };
 
+  const handleBlur = (e) => {
+    const { id } = e.target;
+    const fieldName = id.replace('address-', '');
+    
+    setTouched(prev => ({
+      ...prev,
+      [fieldName]: true
+    }));
+
+    const error = validateField(fieldName, formData[fieldName]);
+    setErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
+  };
 
   // Lấy user từ localStorage khi mở trang
   useEffect(() => {
@@ -103,11 +207,10 @@ const DashAddressAdd = () => {
 
     setIsSearching(true);
     try {
-      // Giới hạn search trong Việt Nam
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?` +
         `q=${encodeURIComponent(query)}&` +
-        `countrycodes=vn&` + // Chỉ tìm ở Việt Nam
+        `countrycodes=vn&` +
         `format=json&` +
         `addressdetails=1&` +
         `limit=8&` +
@@ -132,7 +235,7 @@ const DashAddressAdd = () => {
     setFormData(prev => ({
       ...prev,
       street: streetName,
-      address: result.display_name, // 🧩 thêm dòng này
+      address: result.display_name,
       city: result.address?.city || result.address?.town || result.address?.village || '',
       state: result.address?.state || result.address?.province || '',
       country: result.address?.country || 'Việt Nam'
@@ -143,6 +246,13 @@ const DashAddressAdd = () => {
       lng: parseFloat(result.lon)
     });
 
+    // Clear error khi chọn địa chỉ
+    setErrors(prev => ({
+      ...prev,
+      street: '',
+      address: ''
+    }));
+
     setSearchQuery('');
     setShowSuggestions(false);
     setSearchResults([]);
@@ -151,15 +261,48 @@ const DashAddressAdd = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Mark tất cả fields là touched
+    const allTouched = {
+      firstName: true,
+      lastName: true,
+      phoneNumber: true,
+      street: true,
+      houseNumber: true
+    };
+    setTouched(allTouched);
+
+    // Validate toàn bộ form
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      
+      // Scroll đến error đầu tiên
+      const firstErrorField = Object.keys(validationErrors)[0];
+      const element = document.getElementById(`address-${firstErrorField}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+
+      Swal.fire({
+        icon: 'warning',
+        title: 'Vui lòng kiểm tra lại!',
+        text: 'Có một số trường thông tin chưa hợp lệ.',
+      });
+      return;
+    }
+
     const fullAddress = formData.houseNumber
       ? `${formData.houseNumber}, ${formData.address || formData.street}`
       : formData.address || formData.street;
 
-      
     const payload = {
       ...formData,
       isDefault: true,
       location: fullAddress,
+      latitude: selectedLocation.lat,
+      longitude: selectedLocation.lng
     };
 
     try {
@@ -172,6 +315,25 @@ const DashAddressAdd = () => {
         showConfirmButton: false,
       });
 
+      // Reset form sau khi thêm thành công
+      setFormData({
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        houseNumber: '',
+        street: '',
+        address: '',
+        city: '',
+        state: '',
+        country: 'Việt Nam'
+      });
+      setErrors({});
+      setTouched({});
+      setSelectedLocation({
+        lat: 21.028511,
+        lng: 105.804817,
+      });
+
       console.log("📦 Address saved:", res);
     } catch (err) {
       Swal.fire({
@@ -181,11 +343,11 @@ const DashAddressAdd = () => {
       });
     }
   };
+
   return (
     <>
       {/*====== Section 1 ======*/}
       <div className="u-s-p-y-60">
-        {/*====== Section Content ======*/}
         <div className="section__content">
           <div className="container">
             <div className="breadcrumb">
@@ -207,16 +369,13 @@ const DashAddressAdd = () => {
 
       {/*====== Section 2 ======*/}
       <div className="u-s-p-b-60">
-        {/*====== Section Content ======*/}
         <div className="section__content">
           <div className="dash">
             <div className="container">
               <div className="row">
                 <div className="col-lg-3 col-md-12">
-                  {/*====== Dashboard Features ======*/}
                   <DashboardSidebar activePage="address-book" />
                   <DashboardStats />
-                  {/*====== End - Dashboard Features ======*/}
                 </div>
                 <div className="col-lg-9 col-md-12">
                   <div className="dash__box dash__box--shadow dash__box--radius dash__box--bg-white">
@@ -226,35 +385,47 @@ const DashAddressAdd = () => {
                         We need an address where we could deliver products.
                       </span>
 
-                      <form className="dash-address-manipulation" onSubmit={handleSubmit}>
+                      <form className="dash-address-manipulation" onSubmit={handleSubmit} noValidate>
                         <div className="gl-inline">
                           <div className="u-s-m-b-30">
                             <label className="gl-label" htmlFor="address-firstName">
                               FIRST NAME *
                             </label>
                             <input
-                              className="input-text input-text--primary-style"
+                              className={`input-text input-text--primary-style ${
+                                errors.firstName ? 'input-error' : ''
+                              }`}
                               type="text"
                               id="address-firstName"
                               placeholder="First Name"
                               value={formData.firstName}
                               onChange={handleInputChange}
+                              onBlur={handleBlur}
                               required
                             />
+                            {errors.firstName && (
+                              <span className="error-message">{errors.firstName}</span>
+                            )}
                           </div>
                           <div className="u-s-m-b-30">
                             <label className="gl-label" htmlFor="address-lastName">
                               LAST NAME *
                             </label>
                             <input
-                              className="input-text input-text--primary-style"
+                              className={`input-text input-text--primary-style ${
+                                errors.lastName ? 'input-error' : ''
+                              }`}
                               type="text"
                               id="address-lastName"
                               placeholder="Last Name"
                               value={formData.lastName}
                               onChange={handleInputChange}
+                              onBlur={handleBlur}
                               required
                             />
+                            {errors.lastName && (
+                              <span className="error-message">{errors.lastName}</span>
+                            )}
                           </div>
                         </div>
 
@@ -264,27 +435,39 @@ const DashAddressAdd = () => {
                               PHONE *
                             </label>
                             <input
-                              className="input-text input-text--primary-style"
-                              type="text"
+                              className={`input-text input-text--primary-style ${
+                                errors.phoneNumber ? 'input-error' : ''
+                              }`}
+                              type="tel"
                               id="address-phoneNumber"
-                              placeholder="Phone"
+                              placeholder="0912345678"
                               value={formData.phoneNumber}
                               onChange={handleInputChange}
+                              onBlur={handleBlur}
                               required
                             />
+                            {errors.phoneNumber && (
+                              <span className="error-message">{errors.phoneNumber}</span>
+                            )}
                           </div>
                           <div className="u-s-m-b-30">
                             <label className="gl-label" htmlFor="address-houseNumber">
                               NUMBER HOME
                             </label>
                             <input
-                              className="input-text input-text--primary-style"
+                              className={`input-text input-text--primary-style ${
+                                errors.houseNumber ? 'input-error' : ''
+                              }`}
                               type="text"
                               id="address-houseNumber"
                               placeholder="Ví dụ: 69, 123A, ..."
                               value={formData.houseNumber}
                               onChange={handleInputChange}
+                              onBlur={handleBlur}
                             />
+                            {errors.houseNumber && (
+                              <span className="error-message">{errors.houseNumber}</span>
+                            )}
                           </div>
                         </div>
 
@@ -294,7 +477,9 @@ const DashAddressAdd = () => {
                             SEARCH STREET NAME *
                           </label>
                           <input
-                            className="input-text input-text--primary-style"
+                            className={`input-text input-text--primary-style ${
+                              errors.street ? 'input-error' : ''
+                            }`}
                             type="text"
                             id="search-street"
                             placeholder="Nhập tên đường, phố để tìm kiếm..."
@@ -302,6 +487,9 @@ const DashAddressAdd = () => {
                             onChange={(e) => handleSearchQueryChange(e.target.value)}
                             autoComplete="off"
                           />
+                          {errors.street && !searchQuery && (
+                            <span className="error-message">{errors.street}</span>
+                          )}
 
                           {/* Dropdown gợi ý địa chỉ */}
                           {showSuggestions && (
@@ -376,6 +564,7 @@ const DashAddressAdd = () => {
 
                         {/* 🗺️ LEAFLET MAP SECTION */}
                         <div className="u-s-m-b-30">
+                          <label className="gl-label">LOCATION ON MAP</label>
                           <div style={{ height: '400px', width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' }}>
                             <MapContainer
                               center={[selectedLocation.lat, selectedLocation.lng]}
@@ -391,6 +580,9 @@ const DashAddressAdd = () => {
                               <MapClickHandler setPosition={setSelectedLocation} />
                             </MapContainer>
                           </div>
+                          <small style={{ color: '#666', fontSize: '12px', marginTop: '5px', display: 'block' }}>
+                            💡 Click vào bản đồ để điều chỉnh vị trí chính xác
+                          </small>
                         </div>
                         {/* 🗺️ END MAP SECTION */}
 
@@ -405,9 +597,34 @@ const DashAddressAdd = () => {
             </div>
           </div>
         </div>
-        {/*====== End - Section Content ======*/}
       </div>
       {/*====== End - Section 2 ======*/}
+
+      <style jsx>{`
+        .input-error {
+          border-color: #f44336 !important;
+          background-color: #ffebee;
+        }
+
+        .error-message {
+          display: block;
+          color: #f44336;
+          font-size: 12px;
+          margin-top: 5px;
+          font-weight: 500;
+        }
+
+        .input-text:focus {
+          outline: none;
+          border-color: #2196F3;
+          box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+        }
+
+        .input-error:focus {
+          border-color: #f44336 !important;
+          box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.1) !important;
+        }
+      `}</style>
     </>
   );
 };

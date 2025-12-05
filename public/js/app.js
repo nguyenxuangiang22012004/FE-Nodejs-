@@ -36,17 +36,17 @@
 
 
 
-    // Bind Scroll Up to all pages
-    RESHOP.initScrollUp = function() {
-        $.scrollUp({
-            scrollName: 'topScroll',
-            scrollText: '<i class="fas fa-long-arrow-alt-up"></i>',
-            easingType: 'linear',
-            scrollSpeed: 900,
-            animation: 'fade',
-            zIndex: 100
-        });
-    };
+    // // Bind Scroll Up to all pages
+    // RESHOP.initScrollUp = function() {
+    //     $.scrollUp({
+    //         scrollName: 'topScroll',
+    //         scrollText: '<i class="fas fa-long-arrow-alt-up"></i>',
+    //         easingType: 'linear',
+    //         scrollSpeed: 900,
+    //         animation: 'fade',
+    //         zIndex: 100
+    //     });
+    // };
 
     RESHOP.initScrollSpy = function() {
         var $bodyScrollSpy = $('#js-scrollspy-trigger');

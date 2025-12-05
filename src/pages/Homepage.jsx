@@ -13,6 +13,7 @@ import Section10 from '../components/homepage/Section10';
 import Section11 from '../components/homepage/Section11';
 import Section12 from '../components/homepage/Section12';
 import VoucherSection from '../components/homepage/VoucherSection';
+import ChatWidget from '../components/chat/ChatWidget'; 
 import { useAuthFromCookie } from "../hooks/useAuthFromCookie";
 const Homepage = () => {
   // useAuthFromCookie();
@@ -123,6 +124,8 @@ const Homepage = () => {
       
       {/* Section 12 - Brands */}
       <Section12 />
+
+      <ChatWidget />
     </>
   );
 };
