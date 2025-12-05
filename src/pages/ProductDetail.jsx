@@ -11,6 +11,11 @@ const ProductDetail = () => {
    const [images, setImages] = useState([]);
   const { id } = useParams(); 
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });  
+  }, [id]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
