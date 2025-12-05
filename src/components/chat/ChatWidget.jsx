@@ -12,27 +12,26 @@ const ChatWidget = () => {
   const [adminId, setAdminId] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  
+
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const typingTimerRef = useRef(null);
-  
+
   const API_URL = "http://localhost:3000";
 
-  // Initialize
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (!stored) {
       window.location.href = "/views/login.html";
       return;
     }
-    
+
     const user = JSON.parse(stored);
     if (user.role !== "User") {
       window.location.href = "/views/login.html";
       return;
     }
-    
+
     setCurrentUser(user);
     findAdmin();
   }, []);
@@ -49,12 +48,11 @@ const ChatWidget = () => {
       console.error("Find admin error:", err);
     }
   };
-
-  // Connect socket when adminId is available
+  
   useEffect(() => {
     if (!adminId || !currentUser) return;
 
-    const newSocket = io(API_URL, { 
+    const newSocket = io(API_URL, {
       withCredentials: true,
       transports: ["websocket", "polling"]
     });
@@ -89,8 +87,8 @@ const ChatWidget = () => {
     if (!adminId) return;
 
     try {
-      const res = await fetch(`${API_URL}/chat/messages/${adminId}?limit=100`, { 
-        credentials: "include" 
+      const res = await fetch(`${API_URL}/chat/messages/${adminId}?limit=100`, {
+        credentials: "include"
       });
       const result = await res.json();
       const msgs = result.data?.messages || result.data || [];
@@ -108,12 +106,12 @@ const ChatWidget = () => {
   // Send message
   const sendMessage = () => {
     const content = messageInput.trim();
-    
+
     if (!content || !adminId || !socket?.connected) return;
 
-    socket.emit("chat:send_message", { 
-      receiverId: adminId, 
-      content 
+    socket.emit("chat:send_message", {
+      receiverId: adminId,
+      content
     }, (ack) => {
       if (ack?.success) {
         setMessages(prev => [...prev, ack.message]);
@@ -127,12 +125,12 @@ const ChatWidget = () => {
   // Handle typing
   const handleTyping = (e) => {
     setMessageInput(e.target.value);
-    
+
     if (!socket?.connected || !adminId) return;
-    
+
     socket.emit("chat:typing", { receiverId: adminId, isTyping: true });
     clearTimeout(typingTimerRef.current);
-    
+
     typingTimerRef.current = setTimeout(() => {
       socket.emit("chat:typing", { receiverId: adminId, isTyping: false });
     }, 1000);
@@ -166,21 +164,29 @@ const ChatWidget = () => {
     try {
       const form = new FormData();
       form.append("file", selectedFile);
-      
-      const res = await fetch(`${API_URL}/chat/upload-file`, { 
-        method: "POST", 
-        credentials: "include", 
-        body: form 
+
+      const res = await fetch(`${API_URL}/chat/upload-file`, {
+        method: "POST",
+        credentials: "include",
+        body: form
       });
-      
+
       const json = await res.json();
+      console.log("Upload response:", json); // Debug log
 
       if (json.success && json.data?.fileUrl) {
+        const fullImageUrl = json.data.fileUrl.startsWith('http')
+          ? json.data.fileUrl
+          : `${API_URL}${json.data.fileUrl}`;
+
+        console.log("Sending image URL:", fullImageUrl); // Debug log
+
         socket.emit("chat:send_message", {
           receiverId: adminId,
-          content: "",
-          filePath: json.data.fileUrl
+          content: " ", // Gửi space thay vì chuỗi rỗng
+          filePath: fullImageUrl
         }, (ack) => {
+          console.log("Send message ack:", ack); // Debug log
           if (ack?.success) {
             setMessages(prev => [...prev, ack.message]);
           } else {
@@ -189,6 +195,7 @@ const ChatWidget = () => {
         });
       } else {
         alert("Upload ảnh thất bại!");
+        console.error("Upload failed:", json);
       }
     } catch (err) {
       console.error("Upload error:", err);
@@ -199,11 +206,22 @@ const ChatWidget = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Logout
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [isOpen]);
+
   const handleLogout = async () => {
-    await fetch(`${API_URL}/auth/logout`, { 
-      method: "DELETE", 
-      credentials: "include" 
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "DELETE",
+      credentials: "include"
     });
     localStorage.clear();
     window.location.href = "/views/login.html";
@@ -211,9 +229,9 @@ const ChatWidget = () => {
 
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
-    return new Date(timestamp).toLocaleTimeString("vi-VN", { 
-      hour: "2-digit", 
-      minute: "2-digit" 
+    return new Date(timestamp).toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit"
     });
   };
 
@@ -273,7 +291,7 @@ const ChatWidget = () => {
             0 8px 24px rgba(0, 0, 0, 0.15),
             0 0 0 1px rgba(0, 0, 0, 0.05);
           width: 420px;
-          height: 620px;
+          height: 520px;
           display: flex;
           flex-direction: column;
           overflow: hidden;
@@ -791,9 +809,9 @@ const ChatWidget = () => {
                 >
                   <div className={`message-bubble ${isSent ? 'sent' : 'received'}`}>
                     {msg.filePath && (
-                      <img 
-                        src={msg.filePath} 
-                        alt="image" 
+                      <img
+                        src={msg.filePath}
+                        alt="image"
                         className="message-image"
                         onClick={() => window.open(msg.filePath, '_blank')}
                       />
@@ -808,7 +826,7 @@ const ChatWidget = () => {
                 </div>
               );
             })}
-            
+
             {isTyping && (
               <div className="typing-indicator">
                 <div className="typing-bubble">
@@ -818,7 +836,7 @@ const ChatWidget = () => {
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -832,7 +850,7 @@ const ChatWidget = () => {
               >
                 <Image size={20} />
               </button>
-              
+
               <input
                 type="file"
                 ref={fileInputRef}
@@ -840,7 +858,7 @@ const ChatWidget = () => {
                 accept="image/*"
                 className="hidden"
               />
-              
+
               <input
                 type="text"
                 value={messageInput}
@@ -849,7 +867,7 @@ const ChatWidget = () => {
                 placeholder="Nhập tin nhắn..."
                 className="message-input"
               />
-              
+
               <button
                 onClick={sendMessage}
                 className="send-btn"
@@ -867,9 +885,9 @@ const ChatWidget = () => {
         <div className="preview-modal">
           <div className="preview-content">
             <h4 className="preview-title">Preview Image</h4>
-            <img 
-              src={previewImage} 
-              alt="preview" 
+            <img
+              src={previewImage}
+              alt="preview"
               className="preview-image"
             />
             <div className="preview-actions">

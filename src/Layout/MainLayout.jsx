@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ScriptLoader from '../components/ScriptLoader';
+import ChatWidget from '../components/chat/ChatWidget'; 
 const MainLayout = () => {
   useEffect(() => {
     // Remove preloader after component mounts
@@ -46,7 +47,7 @@ const MainLayout = () => {
       </div>
 
       <Footer />
-
+     <ChatWidget />
       {/* Modals */}
       <QuickLookModal />
       <AddToCartModal />
