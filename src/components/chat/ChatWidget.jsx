@@ -12,6 +12,7 @@ const ChatWidget = () => {
   const [adminId, setAdminId] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -65,6 +66,10 @@ const ChatWidget = () => {
     newSocket.on("chat:new_message", (data) => {
       setMessages(prev => [...prev, data.message]);
       if (data.message.senderId === adminId) {
+        // Nếu chat đang đóng, tăng số lượng tin nhắn chưa đọc
+        if (!isOpen) {
+          setUnreadCount(prev => prev + 1);
+        }
         newSocket.emit("chat:read_messages", { senderId: adminId });
       }
     });
@@ -93,15 +98,31 @@ const ChatWidget = () => {
       const result = await res.json();
       const msgs = result.data?.messages || result.data || [];
       setMessages(msgs);
+      
+      // Hiển thị ngay ở cuối sau khi load tin nhắn
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+      }, 50);
     } catch (err) {
       console.error("Load messages error:", err);
     }
   };
 
-  // Scroll to bottom
+  // Scroll to bottom khi có tin nhắn mới - instant, không có animation
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+    }
+  }, [messages, isOpen]);
+
+  // Khi mở chat, reset số lượng tin nhắn chưa đọc và hiển thị ngay cuối
+  useEffect(() => {
+    if (isOpen) {
+      setUnreadCount(0);
+      // Hiển thị ngay ở cuối, không có scroll animation
+      messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+    }
+  }, [isOpen]);
 
   // Send message
   const sendMessage = () => {
@@ -172,21 +193,21 @@ const ChatWidget = () => {
       });
 
       const json = await res.json();
-      console.log("Upload response:", json); // Debug log
+      console.log("Upload response:", json);
 
       if (json.success && json.data?.fileUrl) {
         const fullImageUrl = json.data.fileUrl.startsWith('http')
           ? json.data.fileUrl
           : `${API_URL}${json.data.fileUrl}`;
 
-        console.log("Sending image URL:", fullImageUrl); // Debug log
+        console.log("Sending image URL:", fullImageUrl);
 
         socket.emit("chat:send_message", {
           receiverId: adminId,
-          content: " ", // Gửi space thay vì chuỗi rỗng
+          content: " ",
           filePath: fullImageUrl
         }, (ack) => {
-          console.log("Send message ack:", ack); // Debug log
+          console.log("Send message ack:", ack);
           if (ack?.success) {
             setMessages(prev => [...prev, ack.message]);
           } else {
@@ -205,18 +226,6 @@ const ChatWidget = () => {
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    }
-  }, [isOpen]);
 
   const handleLogout = async () => {
     await fetch(`${API_URL}/auth/logout`, {
@@ -277,6 +286,37 @@ const ChatWidget = () => {
           box-shadow: 
             0 6px 16px rgba(255, 107, 53, 0.35),
             0 3px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .unread-badge {
+          position: absolute;
+          top: -4px;
+          right: -4px;
+          background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+          color: white;
+          border-radius: 50%;
+          min-width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: 700;
+          padding: 0 6px;
+          box-shadow: 
+            0 4px 12px rgba(220, 53, 69, 0.5),
+            0 2px 6px rgba(0, 0, 0, 0.2),
+            0 0 0 3px white;
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
         }
 
         .chat-window {
@@ -770,6 +810,9 @@ const ChatWidget = () => {
         className="chat-button"
       >
         {isOpen ? <X size={26} /> : <MessageCircle size={26} />}
+        {!isOpen && unreadCount > 0 && (
+          <span className="unread-badge">{unreadCount}</span>
+        )}
       </button>
 
       {/* Chat Window */}
