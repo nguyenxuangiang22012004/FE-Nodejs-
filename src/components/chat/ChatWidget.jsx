@@ -22,16 +22,16 @@ const ChatWidget = () => {
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
-    if (!stored) {
-      window.location.href = "/views/login.html";
-      return;
-    }
+    // if (!stored) {
+    //   window.location.href = "/login";
+    //   return;
+    // }
 
     const user = JSON.parse(stored);
-    if (user.role !== "User") {
-      window.location.href = "/views/login.html";
-      return;
-    }
+    // if (user.role !== "User") {
+    //   window.location.href = "/login";
+    //   return;
+    // }
 
     setCurrentUser(user);
     findAdmin();

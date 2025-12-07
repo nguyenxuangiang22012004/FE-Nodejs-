@@ -13,8 +13,8 @@ export const register = async (userData) => {
       throw new Error('API response does not contain valid user');
     }
 
-    localStorage.setItem('user', JSON.stringify(user));
-    window.dispatchEvent(new Event('auth-changed'));
+    // localStorage.setItem('user', JSON.stringify(user));
+    // window.dispatchEvent(new Event('auth-changed'));
 
     return user;
   } catch (error) {
