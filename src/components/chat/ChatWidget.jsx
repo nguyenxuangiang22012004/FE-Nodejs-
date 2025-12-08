@@ -18,7 +18,7 @@ const ChatWidget = () => {
   const fileInputRef = useRef(null);
   const typingTimerRef = useRef(null);
 
-  const API_URL = "http://localhost:3000";
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
