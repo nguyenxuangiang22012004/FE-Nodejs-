@@ -13,7 +13,7 @@ const Section2 = () => {
           subcategoryId: "",
           minPrice: "",
           maxPrice: "",
-          limit: 9,
+          limit: 8,
           offset: 0,
         };
 

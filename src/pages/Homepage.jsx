@@ -95,34 +95,34 @@ const Homepage = () => {
       <Section2 />
       
       {/* Section 3 - Deal of the Day */}
-      <Section3 />
+      {/* <Section3 /> */}
       
       {/* Section 4 - New Arrivals */}
-      <Section4 />
-      
+      {/* <Section4 />
+       */}
       {/* Section 5 - Global Offers Banner */}
-      <Section5 />
-      
+      {/* <Section5 />
+       */}
       {/* Section 6 - Featured Products */}
-      <Section6 />
+      {/* <Section6 /> */}
       
       {/* Section 7 - Promotions */}
-      <Section7 />
+      {/* <Section7 /> */}
       
       {/* Section 8 - Column Products */}
-      <Section8 />
+      {/* <Section8 /> */}
       
       {/* Section 9 - Services */}
-      <Section9 />
+      {/* <Section9 /> */}
       
       {/* Section 10 - Blog Section */}
       <Section10 />
       
       {/* Section 11 - Testimonials */}
-      <Section11 />
+      {/* <Section11 /> */}
       
       {/* Section 12 - Brands */}
-      <Section12 />
+      {/* <Section12 /> */}
 
       {/* <ChatWidget /> */}
     </>

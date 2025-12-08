@@ -22,6 +22,7 @@ const DashManageOrder = () => {
       currency: 'VND'
     }).format(amount);
   };
+
   const handleCancelOrder = async () => {
     if (!orderData?.id) return;
 
@@ -50,6 +51,7 @@ const DashManageOrder = () => {
       }
     }
   };
+
   // Hàm render timeline dựa theo status
   const renderTimeline = (status) => {
     const timelineSteps = [
@@ -72,8 +74,6 @@ const DashManageOrder = () => {
       'completed': 3,
       'cancelled': -1
     };
-
-
 
     const currentStepIndex = statusMap[status?.toLowerCase()] || 0;
 
@@ -322,53 +322,60 @@ const DashManageOrder = () => {
                               const variant = productVariants[item.productVariantId];
 
                               return (
-                                <div key={item.id || index} className="manage-o__description">
-                                  <div className="description__container">
-                                    <div className="description__img-wrap">
-                                      <img
-                                        className="u-img-fluid"
-                                        src={variant?.variantImageUrl || '/placeholder.jpg'}
-                                        alt={variant?.variantImageUrl || 'Product'}
-                                      />
+                                <div key={item.id || index}>
+                                  <div className="manage-o__description">
+                                    <div className="description__container">
+                                      <div className="description__img-wrap" style={{ width: '120px', height: '120px', flexShrink: 0 }}>
+                                        <img
+                                          className="u-img-fluid"
+                                          src={variant?.variantImageUrl || '/placeholder.jpg'}
+                                          alt={variant?.variantImageUrl || 'Product'}
+                                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                                        />
+                                      </div>
+                                      <div className="description-title">
+                                        {variant?.product.name || 'Loading...'}
+                                        {variant?.color && (
+                                          <span className="dash__text-2"> - Color: {variant.color}</span>
+                                        )}
+                                        {variant?.size && (
+                                          <span className="dash__text-2"> - Size: {variant.size}</span>
+                                        )}
+                                      </div>
                                     </div>
-                                    <div className="description-title">
-                                      {variant?.product.name || 'Loading...'}
-                                      {variant?.color && (
-                                        <span className="dash__text-2"> - Color: {variant.color}</span>
-                                      )}
-                                      {variant?.size && (
-                                        <span className="dash__text-2"> - Size: {variant.size}</span>
-                                      )}
+                                    <div className="description__info-wrap">
+                                      <div>
+                                        <span className="manage-o__text-2 u-c-silver">
+                                          Quantity: <span className="manage-o__text-2 u-c-secondary">
+                                            {item?.quantity || 1}
+                                          </span>
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="manage-o__text-2 u-c-silver">
+                                          Unit Price: <span className="manage-o__text-2 u-c-secondary">
+                                            {formatVND(item?.unitPrice || 0)}
+                                          </span>
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="manage-o__text-2 u-c-silver">
+                                          Subtotal: <span className="manage-o__text-2 u-c-secondary">
+                                            {formatVND(item?.subtotal || 0)}
+                                          </span>
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="manage-o__text-2 u-c-silver">
+                                          Note: <span className="manage-o__text-2 u-c-secondary">{item?.note || "No note"}</span>
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-                                  <div className="description__info-wrap">
-                                    <div>
-                                      <span className="manage-o__text-2 u-c-silver">
-                                        Quantity: <span className="manage-o__text-2 u-c-secondary">
-                                          {item?.quantity || 1}
-                                        </span>
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span className="manage-o__text-2 u-c-silver">
-                                        Unit Price: <span className="manage-o__text-2 u-c-secondary">
-                                          {formatVND(item?.unitPrice || 0)}
-                                        </span>
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span className="manage-o__text-2 u-c-silver">
-                                        Subtotal: <span className="manage-o__text-2 u-c-secondary">
-                                          {formatVND(item?.subtotal || 0)}
-                                        </span>
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span className="manage-o__text-2 u-c-silver">
-                                        Note: <span className="manage-o__text-2 u-c-secondary">{item?.note || "No note"}</span>
-                                      </span>
-                                    </div>
-                                  </div>
+                                  {/* Đường gạch ngang ngăn cách, không hiện ở sản phẩm cuối cùng */}
+                                  {index < orderData.orderDetails.length - 1 && (
+                                    <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #e0e0e0' }} />
+                                  )}
                                 </div>
                               );
                             })
