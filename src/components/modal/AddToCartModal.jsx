@@ -13,6 +13,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [productDetail, setProductDetail] = useState(null);
   const [displayImage, setDisplayImage] = useState('');
+  const [currentPrice, setCurrentPrice] = useState(0);
   const MySwal = withReactContent(Swal);
 
   useEffect(() => {
@@ -23,6 +24,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
           console.log(res);
           setProductDetail(res.data);
           setDisplayImage(res.data.imageUrl);
+          setCurrentPrice(res.data.price || product.price);
         } catch (error) {
           console.error("❌ Lỗi khi lấy chi tiết sản phẩm:", error);
         }
@@ -56,7 +58,6 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         text: 'Vui lòng chọn đầy đủ size và màu trước khi thêm vào giỏ hàng.',
         timer: 1500,
       });
-      onClose();
       return;
     }
 
@@ -72,11 +73,9 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         title: 'Không tìm thấy biến thể!',
         text: 'Vui lòng chọn lại màu và size khác.',
       });
-      onClose();
       return;
     }
 
-    // Kiểm tra số lượng tồn kho trước khi thêm vào giỏ
     if (selectedVariant.stockQuantity <= 0) {
       MySwal.fire({
         icon: 'error',
@@ -87,7 +86,6 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
       return;
     }
 
-    // Kiểm tra số lượng yêu cầu có vượt quá tồn kho không
     if (quantity > selectedVariant.stockQuantity) {
       MySwal.fire({
         icon: 'warning',
@@ -99,6 +97,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
     }
 
     const variantId = selectedVariant.id;
+    const finalPrice = selectedVariant.variantPrice || currentPrice;
 
     try {
       const res = await addToCart(variantId, quantity);
@@ -107,34 +106,31 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
           icon: 'success',
           title: 'Đã thêm vào giỏ hàng!',
           html: `
-      <div style="text-align:left; font-size:15px; margin-top:10px">
-        <b>Sản phẩm:</b> ${product.name}<br/>
-        <b>Màu sắc:</b> ${selectedColor}<br/>
-        <b>Kích cỡ:</b> ${selectedSize}<br/>
-        <b>Số lượng:</b> ${quantity}<br/>
-        <b>Tổng cộng:</b> ${new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-          }).format(product.price * quantity)}
-      </div>
-    `,
+            <div style="text-align:left; font-size:15px; margin-top:10px">
+              <b>Sản phẩm:</b> ${product.name}<br/>
+              <b>Màu sắc:</b> ${selectedColor}<br/>
+              <b>Kích cỡ:</b> ${selectedSize}<br/>
+              <b>Số lượng:</b> ${quantity}<br/>
+              <b>Tổng cộng:</b> ${new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+              }).format(finalPrice * quantity)}
+            </div>
+          `,
           timer: 1800,
           showConfirmButton: false,
         });
 
-        // 🧠 Tạo đối tượng cartItem
         const cartItem = {
           ...product,
           selectedSize,
           selectedColor,
           quantity,
           variantId,
+          price: finalPrice,
         };
 
-        // ✅ Lấy giỏ hàng hiện tại từ localStorage (nếu có)
         const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-
-        // ✅ Kiểm tra xem sản phẩm cùng variant đã có trong giỏ chưa
         const existingItemIndex = existingCart.findIndex(
           (item) =>
             item.variantId === variantId &&
@@ -143,20 +139,14 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         );
 
         if (existingItemIndex !== -1) {
-          // Nếu có rồi → tăng số lượng
           existingCart[existingItemIndex].quantity += quantity;
         } else {
-          // Nếu chưa có → thêm mới
           existingCart.push(cartItem);
         }
 
-        // ✅ Lưu lại vào localStorage
         localStorage.setItem('cart', JSON.stringify(existingCart));
-
-        // ✅ Kích hoạt event cập nhật giỏ hàng (nếu cần)
         window.dispatchEvent(new Event("cartUpdated"));
 
-        // Nếu component cha có callback
         if (onConfirmAddToCart) {
           onConfirmAddToCart(cartItem);
         }
@@ -184,6 +174,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
     setSelectedSize('');
     setSelectedColor('');
     setQuantity(1);
+    setCurrentPrice(productDetail?.price || product.price);
     onClose();
   };
 
@@ -210,7 +201,6 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         (type === "color" ? value.toLowerCase() : selectedColor?.toLowerCase())
     );
 
-    // Kiểm tra số lượng tồn kho
     if (variant && variant.stockQuantity <= 0) {
       MySwal.fire({
         icon: 'warning',
@@ -218,8 +208,7 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
         text: 'Vui lòng chọn size hoặc màu khác.',
         timer: 2000,
       });
-      
-      // Reset lựa chọn vừa chọn
+
       if (type === "size") {
         setSelectedSize('');
       } else if (type === "color") {
@@ -228,10 +217,17 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
       return;
     }
 
-    if (variant?.variantImageUrl) {
-      setDisplayImage(variant.variantImageUrl);
+    if (variant) {
+      const newPrice = variant.variantPrice || productDetail?.price || product.price;
+      setCurrentPrice(newPrice);
+      
+      if (variant.variantImageUrl) {
+        setDisplayImage(variant.variantImageUrl);
+      } else {
+        setDisplayImage(productDetail?.imageUrl || product.imageUrl || product.image);
+      }
     } else {
-      setDisplayImage(productDetail?.imageUrl || product.imageUrl || product.image);
+      setCurrentPrice(productDetail?.price || product.price);
     }
   };
 
@@ -239,26 +235,25 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
     <>
       <div className="variant-modal-overlay" onClick={handleClose}>
         <div className="variant-modal-container" onClick={(e) => e.stopPropagation()}>
-          <button className="variant-modal-close" onClick={handleClose}>
-            ✕
-          </button>
+          <button className="variant-modal-close" onClick={handleClose}>✕</button>
 
           {!showSuccess ? (
             <div className="variant-modal-body">
               <div className="variant-modal-image">
-                <img
-                  src={displayImage}
-                  alt={product.name}
-                />
+                <img src={displayImage} alt={product.name} />
               </div>
 
               <div className="variant-modal-content">
                 <h2 className="variant-product-title">{product.name}</h2>
+                
                 <div className="variant-product-price">
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND"
-                  }).format(product.price)}
+                  }).format(currentPrice)}
+                  {selectedSize && selectedColor && currentPrice !== (productDetail?.price || product.price) && (
+                    <span className="price-changed-badge"></span>
+                  )}
                 </div>
 
                 <div className="variant-section">
@@ -268,11 +263,10 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                   </div>
                   <div className="size-options">
                     {sizes.map((size) => {
-                      // Kiểm tra xem size này có biến thể nào còn hàng không
                       const hasStock = productDetail?.productVariants?.some(
                         (v) => v.size?.toLowerCase() === size.toLowerCase() && v.stockQuantity > 0
                       );
-                      
+
                       return (
                         <button
                           key={size}
@@ -295,11 +289,10 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                   </div>
                   <div className="color-options">
                     {colors.map((color) => {
-                      // Kiểm tra xem màu này có biến thể nào còn hàng không
                       const hasStock = productDetail?.productVariants?.some(
                         (v) => v.color?.toLowerCase() === color.name.toLowerCase() && v.stockQuantity > 0
                       );
-                      
+
                       return (
                         <div
                           key={color.name}
@@ -318,29 +311,29 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                 <div className="variant-section">
                   <div className="variant-label">Quantity</div>
                   <div className="quantity-selector">
-                    <button
-                      className="quantity-btn"
-                      onClick={() => handleQuantityChange('decrease')}
-                    >
-                      −
-                    </button>
+                    <button className="quantity-btn" onClick={() => handleQuantityChange('decrease')}>−</button>
                     <div className="quantity-display">{quantity}</div>
-                    <button
-                      className="quantity-btn"
-                      onClick={() => handleQuantityChange('increase')}
-                    >
-                      +
-                    </button>
+                    <button className="quantity-btn" onClick={() => handleQuantityChange('increase')}>+</button>
                   </div>
                 </div>
 
+                {/* {selectedSize && selectedColor && (
+                  <div className="variant-section">
+                    <div className="total-preview">
+                      <span className="total-label">Tạm tính:</span>
+                      <span className="total-value">
+                        {new Intl.NumberFormat("vi-VN", {
+                          style: "currency",
+                          currency: "VND"
+                        }).format(currentPrice * quantity)}
+                      </span>
+                    </div>
+                  </div>
+                )} */}
+
                 <div className="action-buttons">
-                  <button className="btn-cancel" onClick={handleClose}>
-                    Cancel
-                  </button>
-                  <button className="btn-add" onClick={handleConfirm}>
-                    Add to Cart
-                  </button>
+                  <button className="btn-cancel" onClick={handleClose}>Cancel</button>
+                  <button className="btn-add" onClick={handleConfirm}>Add to Cart</button>
                 </div>
               </div>
             </div>
@@ -349,11 +342,9 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
               <div className="success-icon">
                 <i className="fas fa-check"></i>
               </div>
-              <h2 className="success-title" >
-                Added to Cart!
-              </h2>
+              <h2 className="success-title">Added to Cart!</h2>
 
-              <div className="success-details" style={{ height: "225px" }}>
+              <div className="success-details">
                 <div className="success-detail-row">
                   <span className="success-detail-label">Product:</span>
                   <span className="success-detail-value">{product.name}</span>
@@ -370,13 +361,13 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                   <span className="success-detail-label">Quantity:</span>
                   <span className="success-detail-value">{quantity}</span>
                 </div>
-                <div className="success-detail-row" style={{ paddingTop: '12px', borderTop: '1px solid #dee2e6', marginTop: '8px' }}>
+                <div className="success-detail-row success-total-row">
                   <span className="success-detail-label">Total:</span>
-                  <span className="success-detail-value" style={{ color: '#e74c3c', fontSize: '18px' }}>
+                  <span className="success-detail-value success-total-value">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND"
-                    }).format(product.price * quantity)}
+                    }).format(currentPrice * quantity)}
                   </span>
                 </div>
               </div>
@@ -385,18 +376,10 @@ const AddToCartModal = ({ isOpen, onClose, product, onConfirmAddToCart }) => {
                 <button className="success-btn success-btn-continue" onClick={handleClose}>
                   Continue Shopping
                 </button>
-                <Link
-                  to="/cart"
-                  className="success-btn success-btn-cart"
-                  onClick={handleClose}
-                >
+                <Link to="/cart" className="success-btn success-btn-cart" onClick={handleClose}>
                   View Cart
                 </Link>
-                <Link
-                  to="/checkout"
-                  className="success-btn success-btn-checkout"
-                  onClick={handleClose}
-                >
+                <Link to="/checkout" className="success-btn success-btn-checkout" onClick={handleClose}>
                   Checkout
                 </Link>
               </div>
